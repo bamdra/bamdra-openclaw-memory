@@ -1,0 +1,4 @@
+packages:
+  - "bamdra-*/packages/*"
+  - "bamdra-*/plugins/*"
+  - "bamdra-*/skills/*"

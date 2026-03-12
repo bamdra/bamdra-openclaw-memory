@@ -1,0 +1,22 @@
+{
+  "name": "@openclaw-enhanced/memory-cache-redis",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@openclaw-enhanced/memory-cache-memory": "workspace:*",
+    "@openclaw-enhanced/memory-core": "workspace:*",
+    "redis": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2"
+  }
+}

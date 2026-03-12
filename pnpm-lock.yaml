@@ -1,0 +1,241 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+      redis:
+        specifier: ^5.11.0
+        version: 5.11.0
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  bamdra-memory/packages/context-assembler:
+    dependencies:
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/fact-extractor:
+    dependencies:
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/memory-cache-memory:
+    dependencies:
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/memory-cache-redis:
+    dependencies:
+      '@openclaw-enhanced/memory-cache-memory':
+        specifier: workspace:*
+        version: link:../memory-cache-memory
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+      redis:
+        specifier: ^5.8.2
+        version: 5.11.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/memory-core:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/memory-sqlite:
+    dependencies:
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/summary-refresher:
+    dependencies:
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/packages/topic-router:
+    dependencies:
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/plugins/bamdra-memory-context-engine:
+    dependencies:
+      '@openclaw-enhanced/context-assembler':
+        specifier: workspace:*
+        version: link:../../packages/context-assembler
+      '@openclaw-enhanced/fact-extractor':
+        specifier: workspace:*
+        version: link:../../packages/fact-extractor
+      '@openclaw-enhanced/memory-cache-memory':
+        specifier: workspace:*
+        version: link:../../packages/memory-cache-memory
+      '@openclaw-enhanced/memory-cache-redis':
+        specifier: workspace:*
+        version: link:../../packages/memory-cache-redis
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../../packages/memory-core
+      '@openclaw-enhanced/memory-sqlite':
+        specifier: workspace:*
+        version: link:../../packages/memory-sqlite
+      '@openclaw-enhanced/summary-refresher':
+        specifier: workspace:*
+        version: link:../../packages/summary-refresher
+      '@openclaw-enhanced/topic-router':
+        specifier: workspace:*
+        version: link:../../packages/topic-router
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+  bamdra-memory/plugins/bamdra-memory-tools:
+    dependencies:
+      '@openclaw-enhanced/bamdra-memory-context-engine':
+        specifier: workspace:*
+        version: link:../bamdra-memory-context-engine
+      '@openclaw-enhanced/memory-core':
+        specifier: workspace:*
+        version: link:../../packages/memory-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.12.0
+
+packages:
+
+  '@redis/bloom@5.11.0':
+    resolution: {integrity: sha512-KYiVilAhAFN3057afUb/tfYJpsEyTkQB+tQcn5gVVA7DgcNOAj8lLxe4j8ov8BF6I9C1Fe/kwlbuAICcTMX8Lw==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@redis/client@5.11.0':
+    resolution: {integrity: sha512-GHoprlNQD51Xq2Ztd94HHV94MdFZQ3CVrpA04Fz8MVoHM0B7SlbmPEVIjwTbcv58z8QyjnrOuikS0rWF03k5dQ==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@node-rs/xxhash': ^1.1.0
+    peerDependenciesMeta:
+      '@node-rs/xxhash':
+        optional: true
+
+  '@redis/json@5.11.0':
+    resolution: {integrity: sha512-1iAy9kAtcD0quB21RbPTbUqqy+T2Uu2JxucwE+B4A+VaDbIRvpZR6DMqV8Iqaws2YxJYB3GC5JVNzPYio2ErUg==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@redis/search@5.11.0':
+    resolution: {integrity: sha512-g1l7f3Rnyk/xI99oGHIgWHSKFl45Re5YTIcO8j/JE8olz389yUFyz2+A6nqVy/Zi031VgPDWscbbgOk8hlhZ3g==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@redis/time-series@5.11.0':
+    resolution: {integrity: sha512-TWFeOcU4xkj0DkndnOyhtxvX1KWD+78UHT3XX3x3XRBUGWeQrKo3jqzDsZwxbggUgf9yLJr/akFHXru66X5UQA==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@types/node@24.12.0':
+    resolution: {integrity: sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ==}
+
+  cluster-key-slot@1.1.2:
+    resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
+    engines: {node: '>=0.10.0'}
+
+  redis@5.11.0:
+    resolution: {integrity: sha512-YwXjATVDT+AuxcyfOwZn046aml9jMlQPvU1VXIlLDVAExe0u93aTfPYSeRgG4p9Q/Jlkj+LXJ1XEoFV+j2JKcQ==}
+    engines: {node: '>= 18'}
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
+snapshots:
+
+  '@redis/bloom@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@redis/client@5.11.0':
+    dependencies:
+      cluster-key-slot: 1.1.2
+
+  '@redis/json@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@redis/search@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@redis/time-series@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@types/node@24.12.0':
+    dependencies:
+      undici-types: 7.16.0
+
+  cluster-key-slot@1.1.2: {}
+
+  redis@5.11.0:
+    dependencies:
+      '@redis/bloom': 5.11.0(@redis/client@5.11.0)
+      '@redis/client': 5.11.0
+      '@redis/json': 5.11.0(@redis/client@5.11.0)
+      '@redis/search': 5.11.0(@redis/client@5.11.0)
+      '@redis/time-series': 5.11.0(@redis/client@5.11.0)
+    transitivePeerDependencies:
+      - '@node-rs/xxhash'
+
+  typescript@5.9.3: {}
+
+  undici-types@7.16.0: {}

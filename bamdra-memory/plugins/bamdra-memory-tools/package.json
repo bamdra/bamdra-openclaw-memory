@@ -1,0 +1,21 @@
+{
+  "name": "@openclaw-enhanced/bamdra-memory-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@openclaw-enhanced/bamdra-memory-context-engine": "workspace:*",
+    "@openclaw-enhanced/memory-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "memoryV2": {
+    "enabled": true,
+    "store": {
+      "provider": "sqlite",
+      "path": "/Users/mac/.openclaw/memory/main.sqlite"
+    },
+    "cache": {
+      "provider": "redis",
+      "url": "redis://127.0.0.1:6379/0",
+      "keyPrefix": "openclaw:memory-v2:",
+      "ttlSeconds": 21600,
+      "fallbackToMemory": true
+    }
+  }
+}

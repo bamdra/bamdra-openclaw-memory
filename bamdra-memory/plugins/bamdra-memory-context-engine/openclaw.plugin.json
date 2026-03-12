@@ -1,0 +1,108 @@
+{
+  "id": "bamdra-memory-context-engine",
+  "kind": "context-engine",
+  "name": "Bamdra Memory Context Engine",
+  "description": "Topic-aware session context orchestration for OpenClaw",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "enabled",
+      "store",
+      "cache"
+    ],
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "store": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provider",
+          "path"
+        ],
+        "properties": {
+          "provider": {
+            "const": "sqlite"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "cache": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider"
+            ],
+            "properties": {
+              "provider": {
+                "const": "memory"
+              },
+              "maxSessions": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxTopicsPerSession": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maxFacts": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "url"
+            ],
+            "properties": {
+              "provider": {
+                "const": "redis"
+              },
+              "url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "keyPrefix": {
+                "type": "string"
+              },
+              "ttlSeconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fallbackToMemory": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Memory V2"
+    },
+    "store.path": {
+      "label": "SQLite Path",
+      "placeholder": "/Users/mac/.openclaw/memory/main.sqlite"
+    },
+    "cache.provider": {
+      "label": "Cache Provider"
+    },
+    "cache.url": {
+      "label": "Redis URL",
+      "placeholder": "redis://127.0.0.1:6379/0"
+    }
+  }
+}
