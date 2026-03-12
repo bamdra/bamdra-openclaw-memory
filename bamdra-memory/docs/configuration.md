@@ -14,7 +14,7 @@
     "enabled": true,
     "store": {
       "provider": "sqlite",
-      "path": "/Users/mac/.openclaw/memory/main.sqlite"
+      "path": "~/.openclaw/memory/main.sqlite"
     },
     "cache": {
       "provider": "memory",
@@ -53,7 +53,7 @@
           "enabled": true,
           "store": {
             "provider": "sqlite",
-            "path": "/Users/mac/.openclaw/memory/main.sqlite"
+            "path": "~/.openclaw/memory/main.sqlite"
           },
           "cache": {
             "provider": "memory",
@@ -76,7 +76,7 @@
     "enabled": true,
     "store": {
       "provider": "sqlite",
-      "path": "/Users/mac/.openclaw/memory/main.sqlite"
+      "path": "~/.openclaw/memory/main.sqlite"
     },
     "cache": {
       "provider": "redis",

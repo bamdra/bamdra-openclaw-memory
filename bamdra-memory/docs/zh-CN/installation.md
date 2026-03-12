@@ -4,9 +4,9 @@
 
 安装完成后，OpenClaw 的实际体验会变成这样：
 
-- 你可以在一个 session 里来回切换多个工作分支
+- 你可以先聊一件事，中途处理另一件事，再自然接回原话题
 - 说过一次的重要路径、约束、偏好，不需要反复重复
-- 你说“回到刚才那条线”，agent 更容易真的回去
+- 工作打断不会把前面的思路冲散
 - 重启后，记忆不会因为窗口清空就消失
 
 这不是“多一个技术组件”，而是让长会话终于有连续性。
@@ -16,7 +16,7 @@
 如果你符合下面任意一条，就值得装：
 
 - 你经常和 OpenClaw 长时间协作
-- 你经常在一个 session 里切换多个 topic
+- 你经常在一次对话里被别的事情打断
 - 你讨厌反复告诉模型相同路径、约束和背景
 - 你希望 agent 能记住一些长期有效的信息
 
@@ -24,7 +24,7 @@
 
 你需要：
 
-- Node.js 25.x 或更高
+- Node.js 22.x 或更高
 - pnpm 10.x
 - 一个本地可写目录给 SQLite
 - 已经能正常运行的 OpenClaw
@@ -33,10 +33,21 @@
 
 - Redis，如果你确实需要共享热缓存
 
-## 第一步：进入仓库并安装依赖
+## 推荐安装方式
+
+对普通用户来说，推荐方式是：
+
+1. 下载已经编译好的 release 版本
+2. 把插件目录放到 `~/.openclaw/extensions/`
+3. 在 `~/.openclaw/openclaw.json` 里启用它们
+
+本地编译更适合开发者。
+
+## 开发者从源码构建
 
 ```bash
-cd ~/workspace/openclaw-enhanced
+git clone <你的 fork 或 release 源码地址>
+cd openclaw-topic-memory
 pnpm install
 ```
 
@@ -61,15 +72,15 @@ mkdir -p ~/.openclaw/memory
 默认推荐数据库路径：
 
 ```text
-/Users/mac/.openclaw/memory/main.sqlite
+~/.openclaw/memory/main.sqlite
 ```
 
 ## 第四步：把插件目录接入 OpenClaw
 
 OpenClaw 需要加载这两个目录：
 
-- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 也就是说，你不是把代码“发布”到哪里，而是让 OpenClaw 直接从本地目录加载插件。
 
@@ -100,7 +111,7 @@ OpenClaw 需要加载这两个目录：
     ],
     "load": {
       "paths": [
-        "<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine"
+        "~/.openclaw/extensions/bamdra-memory-context-engine"
       ]
     },
     "slots": {
@@ -113,7 +124,7 @@ OpenClaw 需要加载这两个目录：
           "enabled": true,
           "store": {
             "provider": "sqlite",
-            "path": "/Users/mac/.openclaw/memory/main.sqlite"
+            "path": "~/.openclaw/memory/main.sqlite"
           },
           "cache": {
             "provider": "memory",
@@ -147,16 +158,16 @@ OpenClaw 需要加载这两个目录：
 
 你可以用下面这种真实对话测试：
 
-1. “先聊 SQLite memory 设计。”
-2. “现在切到 Redis 缓存。”
-3. “记住主库路径是 `/Users/mac/.openclaw/memory/main.sqlite`。”
-4. “回到刚才 SQLite 那条线。”
+1. “下个月去哪边旅游比较好？”
+2. “如果去大阪，有哪些一定要吃的东西？”
+3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发文件过去。”
+4. “继续说旅游。如果只有一个短周末，大阪和京都哪个更适合吃东西？”
 
 如果安装正常，实际效果应该是：
 
-- SQLite 和 Redis 会形成两条不同分支
-- 路径信息之后还能被找回
-- “回到刚才”时，agent 不会把 Redis 那段混进来
+- 旅游线索在处理完工作邮件后还能自然接上
+- “吃什么”这条支线仍然和旅游主线保持关联
+- 工作邮件不会污染后面的旅游建议
 
 ## 推荐继续做的一步
 

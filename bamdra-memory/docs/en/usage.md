@@ -6,52 +6,48 @@ The point of `bamdra-memory` is not that it gives you a few extra tool names.
 
 The point is that conversations start to feel like working with a partner that actually stays on track:
 
-- topic switches stop polluting the current branch
+- interruptions stop polluting the earlier conversation
 - "remember this" starts having a visible effect
-- "go back to the earlier thread" becomes understandable
+- returning to an earlier subject becomes natural
 
 ## A Typical Flow
 
-Imagine you are working with OpenClaw on a project.
+Imagine a more everyday conversation.
 
-### Part 1: Start Topic A
+### Implicit Topic Recovery
 
 You say:
 
-> Let's work on the SQLite design for OpenClaw memory.
+> We are thinking about where to travel next month.
 
-The system will usually treat this as one topic.
+Then:
 
-### Part 2: Detour into Topic B
+> If we choose Osaka, what food should we prioritize?
 
-Then you say:
+Then a totally different interruption appears:
 
-> Now switch to Redis as an optional cache.
+> I just received a work email. Help me write a polite reply saying I can send the file tomorrow morning.
 
-That usually becomes a different topic instead of polluting the SQLite branch.
+Later you continue:
 
-### Part 3: Save a Durable Fact
-
-Then you say:
-
-> Remember that the main database path is `/Users/mac/.openclaw/memory/main.sqlite`.
+> Back to the trip. Between Osaka and Kyoto, which city is better for a short food-focused weekend?
 
 Desired effect:
 
-- the path is stored as a stable fact
-- you do not need to repeat it later
+- the travel conversation still feels intact
+- the food sub-thread stays attached to the travel topic
+- the work-email interruption does not pollute the later travel answer
 
-### Part 4: Return to Topic A
+### Explicit Memory Save
 
-Then you say:
+You also say:
 
-> Go back to the SQLite branch.
+> Please remember that I prefer window seats on trains.
 
 Desired effect:
 
-- the agent returns to the SQLite branch
-- current context is rebuilt around SQLite
-- the Redis detour stays separate
+- the preference can be reused later
+- you do not need to repeat it when travel planning continues
 
 ## What Tools Exist in Practice
 
@@ -59,15 +55,15 @@ Desired effect:
 
 Use when:
 
-- you want to inspect which branches already exist
-- the user refers vaguely to "the earlier thread"
+- you want to inspect what conversation threads already exist
+- the user refers vaguely to an earlier topic
 
 ### `memory_switch_topic`
 
 Use when:
 
-- the user explicitly wants to go back to a previous branch
-- the agent already knows which topic should become active
+- explicit control is needed
+- you do not want to rely on automatic recovery for a special case
 
 ### `memory_save_fact`
 
@@ -111,9 +107,9 @@ Poor candidates:
 
 The user should feel:
 
-- "It actually remembers what branch we were on."
-- "It did not make me repeat the path again."
-- "Going back to the old topic did not mix in unrelated work."
+- "It actually remembers what we were talking about."
+- "It did not make me repeat my preference again."
+- "After the interruption, it still answered in the right context."
 
 The user should not feel:
 

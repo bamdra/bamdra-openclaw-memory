@@ -8,31 +8,31 @@
 
 没有 `bamdra-memory` 时，长会话通常会出现这些问题：
 
-- 聊着聊着 SQLite 和 Redis 两条线就混了
-- 40 轮前说过的路径、约束、账号提示很容易消失
-- 你说“回到刚才那个分支”，结果模型开始重放整段历史
+- 本来在聊旅游，后来岔去聊吃什么，又被工作消息打断
+- 处理完工作后，再回到旅游话题时，上下文已经散了
+- 原本应该顺手接上的内容，结果又得重讲一遍
 
 有了 `bamdra-memory` 之后，更像是在用一个带标签页的工作笔记本：
 
-- 不同线程会被拆成不同 topic
+- 不同线程会在后台自动分开
 - 重要事实可以主动钉住，而不是赌模型能一直记住
-- 切回旧分支时，恢复的是分支上下文，不是整段聊天回放
+- 回到之前的话题时，衔接会自然很多，而不是重放整段聊天
 
 ## 一个简单效果示例
 
 你和 OpenClaw 这样对话：
 
-1. “先设计 SQLite memory layout。”
-2. “现在切到 Redis 作为可选缓存。”
-3. “记住主库路径是 `/Users/mac/.openclaw/memory/main.sqlite`。”
-4. “回到刚才 SQLite 那条线。”
+1. “下个月去哪边旅游比较好？”
+2. “如果去大阪，有哪些一定要吃的东西？”
+3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发文件过去。”
+4. “继续说旅游。如果只有一个短周末，大阪和京都哪个更适合吃东西？”
 
 理想效果是：
 
-- SQLite 和 Redis 会分成两条 topic
-- 主库路径之后还能被准确召回
-- “回到刚才”会直接回到 SQLite 分支
-- 当前 prompt 里保留的是 SQLite 相关上下文，而不是 Redis 干扰
+- 旅游线索在处理完工作邮件后还能自然接上
+- “吃什么”这条支线仍然和旅游主线保持关联
+- 工作邮件不会污染后面的旅游建议
+- 整个过程对用户来说是自然连续的，不需要系统解释内部动作
 
 ## 它是什么
 
@@ -40,7 +40,7 @@
 
 它带来的是：
 
-- 面向分支的会话记忆
+- 面向话题的会话记忆
 - 面向当前任务的短上下文
 - 针对路径、约束、决策、引用信息的持久化召回
 - 必要时可由 agent 主动调用的显式记忆工具
@@ -49,9 +49,9 @@
 
 一般会在这些场景下安装它：
 
-- 会话很长，而且经常切 topic
+- 会话很长，而且经常被别的话题或任务打断
 - 不想重复告诉模型同样的路径、规则和偏好
-- 希望“回到上一个分支”真的能工作
+- 希望 assistant 能自然接回之前的话题
 - 希望重启后状态还能恢复
 
 ## 设计目标
@@ -66,7 +66,7 @@
 ## 核心能力
 
 - `话题路由`
-  自动判断继续当前分支、切回旧分支，还是生成新分支。
+  在后台自动把不同话题分开，并在需要时恢复之前的线索。
 - `上下文装配`
   从最近消息、摘要、open loops 和 pinned facts 中拼装当前 prompt 上下文。
 - `持久化事实召回`
@@ -113,7 +113,7 @@
 
 ### 前置条件
 
-- Node.js 25.x 或更新版本
+- Node.js 22.x 或更新版本
 - pnpm 10.x
 - 已启用本地插件加载的 OpenClaw
 - 可通过 Node 内建 `node:sqlite` 使用 SQLite
@@ -136,12 +136,23 @@ pnpm build
 pnpm test
 ```
 
-## 真实安装方式
+## 推荐安装方式
 
-如果你想直接在本机 OpenClaw 里用这套插件，最直接的步骤是：
+对普通用户来说，推荐方式是：
+
+1. 下载已经编译好的 release 版本
+2. 把插件目录放到 `~/.openclaw/extensions/`
+3. 在 `~/.openclaw/openclaw.json` 里启用它们
+
+本地编译更适合开发者。
+
+## 开发者从源码构建
+
+如果你想从源码构建：
 
 ```bash
-cd ~/workspace/openclaw-enhanced
+git clone <你的 fork 或 release 源码地址>
+cd openclaw-topic-memory
 pnpm install
 pnpm build
 mkdir -p ~/.openclaw/memory
@@ -154,16 +165,17 @@ mkdir -p ~/.openclaw/memory
 
 OpenClaw 需要加载的插件目录是：
 
-- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 ## 快速开始
 
-1. 构建整个 workspace。
-2. 选择一个示例配置合并到你的 OpenClaw 配置中。
-3. 把插件目录加入 `plugins.load.paths`。
-4. 设置 `plugins.slots.contextEngine = "bamdra-memory-context-engine"`。
-5. 重启 OpenClaw。
+1. 下载编译好的 release，或从源码构建。
+2. 把插件目录放到 `~/.openclaw/extensions/`。
+3. 选择一个示例配置合并到你的 OpenClaw 配置中。
+4. 把这些目录加入 `plugins.load.paths`。
+5. 设置 `plugins.slots.contextEngine = "bamdra-memory-context-engine"`。
+6. 重启 OpenClaw。
 
 示例配置：
 

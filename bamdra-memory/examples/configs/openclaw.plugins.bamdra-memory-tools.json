@@ -6,7 +6,7 @@
     ],
     "load": {
       "paths": [
-        "/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools"
+        "~/.openclaw/extensions/bamdra-memory-tools"
       ]
     },
     "entries": {

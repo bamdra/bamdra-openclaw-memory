@@ -4,9 +4,9 @@
 
 After installation, OpenClaw should feel different in a very practical way:
 
-- you can move between several branches inside one session
+- you can pause one thread, handle another, and come back without losing the original flow
 - important paths, constraints, and preferences do not vanish after a dozen turns
-- "go back to the earlier thread" becomes a realistic request
+- work interruptions do not ruin the earlier conversation
 - restarts no longer wipe out the useful parts of memory
 
 This is less about adding another technical component and more about making long sessions usable.
@@ -16,13 +16,13 @@ This is less about adding another technical component and more about making long
 Install it if any of these sound familiar:
 
 - you run long OpenClaw sessions
-- you often switch between several topics in one chat
+- you often get interrupted by unrelated tasks during one chat
 - you are tired of repeating the same paths and constraints
 - you want memory to survive restarts
 
 ## Requirements
 
-- Node.js 25.x or newer
+- Node.js 22.x or newer
 - pnpm 10.x
 - a writable local directory for SQLite
 - a working OpenClaw installation
@@ -31,10 +31,21 @@ Optional:
 
 - Redis, if you really need shared hot cache state
 
-## Step 1: Install Dependencies
+## Recommended Install Model
+
+For normal users, the recommended path is:
+
+1. download a compiled release package
+2. place the plugin folders under `~/.openclaw/extensions/`
+3. enable them in `~/.openclaw/openclaw.json`
+
+Local building from source is mainly for developers.
+
+## Developer Build From Source
 
 ```bash
-cd ~/workspace/openclaw-enhanced
+git clone <your-fork-or-release-source>
+cd openclaw-topic-memory
 pnpm install
 ```
 
@@ -59,15 +70,15 @@ mkdir -p ~/.openclaw/memory
 Recommended SQLite path:
 
 ```text
-/Users/mac/.openclaw/memory/main.sqlite
+~/.openclaw/memory/main.sqlite
 ```
 
 ## Step 4: Point OpenClaw at the Plugin Directories
 
 OpenClaw should load these directories directly:
 
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 So the installation model is simple: build the repo, then let OpenClaw load the plugin roots from the filesystem.
 
@@ -98,7 +109,7 @@ The core shape looks like this:
     ],
     "load": {
       "paths": [
-        "<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine"
+        "~/.openclaw/extensions/bamdra-memory-context-engine"
       ]
     },
     "slots": {
@@ -111,7 +122,7 @@ The core shape looks like this:
           "enabled": true,
           "store": {
             "provider": "sqlite",
-            "path": "/Users/mac/.openclaw/memory/main.sqlite"
+            "path": "~/.openclaw/memory/main.sqlite"
           },
           "cache": {
             "provider": "memory",
@@ -145,16 +156,16 @@ Restart OpenClaw after saving the config.
 
 Try this real conversation:
 
-1. "Let's work on the SQLite memory design."
-2. "Now switch to Redis as an optional cache."
-3. "Remember that the main DB path is `/Users/mac/.openclaw/memory/main.sqlite`."
-4. "Go back to the SQLite branch."
+1. "Let's figure out where to travel next month."
+2. "If we go to Osaka, what food should we prioritize?"
+3. "I just got a work email. Help me write a polite reply saying I can send the file tomorrow morning."
+4. "Back to the trip. Between Osaka and Kyoto, which works better for a short food-focused weekend?"
 
 If the installation is working, you should see this effect:
 
-- SQLite and Redis become separate branches
-- the DB path stays recallable later
-- going back does not drag the Redis detour into the active context
+- the travel conversation still feels coherent after the email interruption
+- the food discussion still feels connected to the travel planning
+- the email detour does not pollute the later travel answer
 
 ## Recommended Next Step
 

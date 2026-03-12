@@ -95,7 +95,7 @@
     },
     "store.path": {
       "label": "SQLite Path",
-      "placeholder": "/Users/mac/.openclaw/memory/main.sqlite"
+      "placeholder": "~/.openclaw/memory/main.sqlite"
     },
     "cache.provider": {
       "label": "Cache Provider"

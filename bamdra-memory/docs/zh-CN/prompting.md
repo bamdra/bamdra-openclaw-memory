@@ -11,7 +11,7 @@
 一个接好记忆的 agent，应该做到：
 
 - 用户明确说“记住这个”时，能保存为长期记忆
-- 用户切回旧分支时，能回到对应 topic
+- 对话自然回到旧话题时，能安静地接回上下文
 - 在要求用户重复稳定事实之前，先查记忆
 - 尽量把记忆机制藏在背后，而不是每次都解释工具细节
 
@@ -19,16 +19,15 @@
 
 用户先说：
 
-> 记住 staging workspace 是 `/srv/openclaw-staging`。
-
-过一段时间又说：
-
-> 回到刚才 deployment 那条线。那边用的是哪个 workspace？
+> 我们刚才在聊去日本旅游。
+> 如果去大阪，哪些东西最值得吃？
+> 我突然收到一个工作邮件，先帮我回一下。
+> 好，继续说旅游，短周末的话大阪和京都哪个更适合？
 
 理想行为是：
 
-- agent 不会再问一遍
-- agent 能直接回忆起保存过的路径
+- agent 不会解释自己做了什么内部切换
+- agent 会直接回到正确的旅游上下文
 - 回复像自然对话，而不是数据库回显
 
 ## AGENTS.md 写法示例
@@ -39,7 +38,7 @@
 ## Memory Usage
 
 - 当用户说“记住这个”时，把它保存为 durable memory。
-- 当用户回到较早的话题分支时，尽量切回相关 topic。
+- 当对话自然回到较早的话题时，尽量安静地恢复相关上下文。
 - 在要求用户重复一个稳定事实之前，先搜索 memory。
 - 记忆机制尽量保持隐形，用来提升连续性，不要频繁讲解内部动作。
 ```
@@ -57,7 +56,7 @@
 
 - 对稳定的路径、偏好、环境信息、账号引用和约束，使用 `memory_save_fact`。
 - 在要求用户重复事实之前，先用 `memory_search`。
-- 当用户回到旧分支时，使用 `memory_list_topics` 和 `memory_switch_topic`。
+- 只有在需要显式控制时，才使用 `memory_list_topics` 和 `memory_switch_topic`。
 - 当某个分支方向变化明显时，使用 `memory_compact_topic` 刷新摘要。
 ```
 
@@ -70,8 +69,8 @@
 ```md
 ## Memory Targets
 
-- default workspace path: /Users/mac/.openclaw/workspace-main
-- staging workspace path: /srv/openclaw-staging
+- default workspace path: ~/.openclaw/workspaces/main
+- preferred extensions path: ~/.openclaw/extensions
 - preferred redis db for testing: redis://127.0.0.1:6379/0
 ```
 
@@ -81,8 +80,8 @@
 
 比较好的说法：
 
-- “我已经切回刚才那条 SQLite 分支了。”
-- “这个路径我记下来了。”
+- “这个偏好我会记住。”
+- “接着刚才的话题看，大阪可能更适合。”
 - “我从之前的记录里找到了这个账号提示。”
 
 不太好的说法：

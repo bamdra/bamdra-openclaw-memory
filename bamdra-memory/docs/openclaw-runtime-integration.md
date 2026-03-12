@@ -17,8 +17,8 @@ References:
 
 Use these plugin roots:
 
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 Do not replace the whole `plugins` object in `~/.openclaw/openclaw.json` if you already have other plugins enabled. Merge the additional fields into the existing object.
 

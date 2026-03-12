@@ -69,7 +69,7 @@ Input:
 {
   "sessionId": "session-a",
   "key": "workspace.default",
-  "value": "/Users/mac/.openclaw/workspace-main",
+  "value": "~/.openclaw/workspaces/main",
   "category": "environment",
   "recallPolicy": "always",
   "tags": ["workspace", "openclaw"]

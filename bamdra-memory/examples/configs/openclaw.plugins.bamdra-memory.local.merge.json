@@ -6,7 +6,7 @@
     ],
     "load": {
       "paths": [
-        "/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine"
+        "~/.openclaw/extensions/bamdra-memory-context-engine"
       ]
     },
     "slots": {
@@ -19,7 +19,7 @@
           "enabled": true,
           "store": {
             "provider": "sqlite",
-            "path": "/Users/mac/.openclaw/memory/main.sqlite"
+            "path": "~/.openclaw/memory/main.sqlite"
           },
           "cache": {
             "provider": "memory",

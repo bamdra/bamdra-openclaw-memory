@@ -8,32 +8,32 @@ Topic-aware memory, context assembly, and durable fact recall for OpenClaw.
 
 Without `bamdra-memory`, a long OpenClaw session often feels like this:
 
-- you switch from SQLite to Redis and the assistant starts mixing the two
-- a path or account note mentioned 40 turns ago disappears
-- "go back to the earlier branch" turns into a long replay of old chat
+- you start planning a trip, drift into food ideas, then get interrupted by work
+- after helping with the interruption, the assistant no longer holds the earlier context cleanly
+- details that should have stayed obvious now need to be repeated
 
 With `bamdra-memory`, it feels more like working with a notebook that has tabs:
 
-- each thread becomes a topic
+- different threads stay separated in the background
 - important facts can be pinned instead of hoping the model remembers them
-- switching back to earlier work restores the right branch instead of replaying everything
+- returning to an earlier subject feels natural instead of requiring a replay
 - the active context stays short and relevant
 
 ## A Simple Example
 
 You talk to OpenClaw like this:
 
-1. "Let's design the SQLite memory layout."
-2. "Now switch to Redis as an optional cache."
-3. "Remember that the main DB path is `/Users/mac/.openclaw/memory/main.sqlite`."
-4. "Go back to the SQLite design."
+1. "Let's figure out where to travel next month."
+2. "If we go to Osaka, what food should we prioritize?"
+3. "I just got a work email. Help me draft a polite reply saying I can deliver the file tomorrow morning."
+4. "Back to the trip. Between Osaka and Kyoto, which is better for a short food-focused weekend?"
 
 Expected result:
 
-- the SQLite and Redis discussions stay as separate branches
-- the DB path remains recallable later
-- "go back" returns to the SQLite branch quickly
-- the prompt context contains the SQLite branch, not the Redis detour
+- the travel conversation remains coherent even after the email interruption
+- the food thread still feels connected to the travel plan
+- the work-email detour does not pollute the later travel answer
+- the assistant feels continuous without needing to explain what it did internally
 
 ## What It Is
 
@@ -41,7 +41,7 @@ Expected result:
 
 It gives OpenClaw:
 
-- branch-aware conversation memory
+- topic-aware conversation memory
 - short, focused context for the current topic
 - durable fact recall for paths, decisions, constraints, and references
 - explicit memory tools when the agent needs manual control
@@ -50,9 +50,9 @@ It gives OpenClaw:
 
 People usually install `bamdra-memory` for one of these reasons:
 
-- they run long sessions with many topic switches
+- they run long sessions with many interruptions and topic changes
 - they want the assistant to remember stable facts without repeating them every hour
-- they need "go back to the previous branch" to actually work
+- they want the assistant to naturally return to earlier conversation threads
 - they want memory to survive restarts
 
 ## Design Goals
@@ -67,7 +67,7 @@ People usually install `bamdra-memory` for one of these reasons:
 ## Core Capabilities
 
 - `Topic routing`
-  Continue the current branch, switch to an earlier branch, or spawn a new one.
+  Keep unrelated conversations separated and recover earlier threads naturally.
 - `Context assembly`
   Build prompt context from recent topic turns, summaries, open loops, and pinned facts.
 - `Durable fact recall`
@@ -114,7 +114,7 @@ People usually install `bamdra-memory` for one of these reasons:
 
 ### Prerequisites
 
-- Node.js 25.x or newer
+- Node.js 22.x or newer
 - pnpm 10.x
 - OpenClaw with local plugin loading enabled
 - SQLite available through Node's built-in `node:sqlite`
@@ -137,12 +137,23 @@ pnpm build
 pnpm test
 ```
 
-## Real Installation
+## Recommended Installation
 
-If you want to use it in a local OpenClaw setup from this repo:
+For normal users, the recommended path is:
+
+1. download a compiled release package
+2. place the plugin folders under `~/.openclaw/extensions/`
+3. enable them in `~/.openclaw/openclaw.json`
+
+Local building from source is mainly for developers.
+
+## Developer Build From Source
+
+If you want to build from source:
 
 ```bash
-cd ~/workspace/openclaw-enhanced
+git clone <your-fork-or-release-source>
+cd openclaw-topic-memory
 pnpm install
 pnpm build
 mkdir -p ~/.openclaw/memory
@@ -153,18 +164,19 @@ Then edit `~/.openclaw/openclaw.json` and merge in the plugin settings shown in:
 - [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
 - [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
 
-The plugin directories you point OpenClaw at are:
+The plugin directories OpenClaw should load are:
 
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 ## Quick Start
 
-1. Build the workspace.
-2. Merge one of the example configs into your OpenClaw config.
-3. Load the plugin directories under `plugins.load.paths`.
-4. Set `plugins.slots.contextEngine = "bamdra-memory-context-engine"`.
-5. Restart OpenClaw.
+1. Download the compiled release or build from source.
+2. Put the plugin folders under `~/.openclaw/extensions/`.
+3. Merge one of the example configs into your OpenClaw config.
+4. Load those directories under `plugins.load.paths`.
+5. Set `plugins.slots.contextEngine = "bamdra-memory-context-engine"`.
+6. Restart OpenClaw.
 
 Example overlays:
 

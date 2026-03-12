@@ -8,8 +8,8 @@ Wire `bamdra-memory` into an existing OpenClaw installation without breaking oth
 
 Add these plugin directories to your OpenClaw plugin load paths:
 
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 ## Required OpenClaw Changes
 
@@ -66,8 +66,8 @@ If you only need the tool plugin overlay:
     ],
     "load": {
       "paths": [
-        "<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine",
-        "<repo-root>/bamdra-memory/plugins/bamdra-memory-tools"
+        "~/.openclaw/extensions/bamdra-memory-context-engine",
+        "~/.openclaw/extensions/bamdra-memory-tools"
       ]
     },
     "slots": {
@@ -80,7 +80,7 @@ If you only need the tool plugin overlay:
           "enabled": true,
           "store": {
             "provider": "sqlite",
-            "path": "/Users/mac/.openclaw/memory/main.sqlite"
+            "path": "~/.openclaw/memory/main.sqlite"
           },
           "cache": {
             "provider": "memory",
