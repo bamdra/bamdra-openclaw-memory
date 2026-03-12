@@ -12,6 +12,6 @@ Current capabilities:
 
 See:
 
-- [architecture.md](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/docs/architecture.md)
-- [configuration.md](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/docs/configuration.md)
-- [openclaw-runtime-integration.md](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/docs/openclaw-runtime-integration.md)
+- [architecture.md](../../docs/architecture.md)
+- [configuration.md](../../docs/configuration.md)
+- [openclaw-runtime-integration.md](../../docs/openclaw-runtime-integration.md)

@@ -14,5 +14,5 @@ These tools delegate into the active `bamdra-memory-context-engine` instance rat
 
 See:
 
-- [bamdra-memory-tools.md](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/docs/bamdra-memory-tools.md)
-- [openclaw-runtime-integration.md](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/docs/openclaw-runtime-integration.md)
+- [bamdra-memory-tools.md](../../docs/bamdra-memory-tools.md)
+- [openclaw-runtime-integration.md](../../docs/openclaw-runtime-integration.md)

@@ -8,8 +8,8 @@
 
 将以下目录加入 OpenClaw 的插件加载路径：
 
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools`
+- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine`
+- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-tools`
 
 ## 需要修改的 OpenClaw 配置
 
@@ -66,8 +66,8 @@
     ],
     "load": {
       "paths": [
-        "/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine",
-        "/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools"
+        "<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine",
+        "<仓库根目录>/bamdra-memory/plugins/bamdra-memory-tools"
       ]
     },
     "slots": {

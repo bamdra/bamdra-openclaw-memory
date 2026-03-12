@@ -68,8 +68,8 @@ mkdir -p ~/.openclaw/memory
 
 OpenClaw 需要加载这两个目录：
 
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools`
+- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine`
+- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-tools`
 
 也就是说，你不是把代码“发布”到哪里，而是让 OpenClaw 直接从本地目录加载插件。
 
@@ -100,7 +100,7 @@ OpenClaw 需要加载这两个目录：
     ],
     "load": {
       "paths": [
-        "/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine"
+        "<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine"
       ]
     },
     "slots": {

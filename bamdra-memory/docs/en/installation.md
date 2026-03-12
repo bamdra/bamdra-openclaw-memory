@@ -66,8 +66,8 @@ Recommended SQLite path:
 
 OpenClaw should load these directories directly:
 
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools`
+- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
+- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
 
 So the installation model is simple: build the repo, then let OpenClaw load the plugin roots from the filesystem.
 
@@ -98,7 +98,7 @@ The core shape looks like this:
     ],
     "load": {
       "paths": [
-        "/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine"
+        "<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine"
       ]
     },
     "slots": {

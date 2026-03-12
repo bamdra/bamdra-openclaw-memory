@@ -154,8 +154,8 @@ mkdir -p ~/.openclaw/memory
 
 OpenClaw 需要加载的插件目录是：
 
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools`
+- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-context-engine`
+- `<仓库根目录>/bamdra-memory/plugins/bamdra-memory-tools`
 
 ## 快速开始
 
@@ -176,7 +176,7 @@ OpenClaw 需要加载的插件目录是：
 
 ## 文档
 
-### English
+### 英文文档
 
 - [Product Overview](./docs/en/overview.md)
 - [Installation Guide](./docs/en/installation.md)
@@ -184,7 +184,7 @@ OpenClaw 需要加载的插件目录是：
 - [Usage Guide](./docs/en/usage.md)
 - [Prompting Guide](./docs/en/prompting.md)
 
-### 中文
+### 中文文档
 
 - [产品概览](./docs/zh-CN/overview.md)
 - [安装指南](./docs/zh-CN/installation.md)

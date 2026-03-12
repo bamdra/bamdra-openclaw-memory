@@ -17,8 +17,8 @@ References:
 
 Use these plugin roots:
 
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools`
+- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
+- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
 
 Do not replace the whole `plugins` object in `~/.openclaw/openclaw.json` if you already have other plugins enabled. Merge the additional fields into the existing object.
 
@@ -37,15 +37,15 @@ Do not replace the whole `plugins` object in `~/.openclaw/openclaw.json` if you 
 
 Local in-memory cache:
 
-- [openclaw.plugins.bamdra-memory.local.merge.json](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
+- [openclaw.plugins.bamdra-memory.local.merge.json](../examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
 
 Redis cache enabled:
 
-- [openclaw.plugins.bamdra-memory.redis.merge.json](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
+- [openclaw.plugins.bamdra-memory.redis.merge.json](../examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
 
 Tool plugin only:
 
-- [openclaw.plugins.bamdra-memory-tools.json](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/examples/configs/openclaw.plugins.bamdra-memory-tools.json)
+- [openclaw.plugins.bamdra-memory-tools.json](../examples/configs/openclaw.plugins.bamdra-memory-tools.json)
 
 ## Important Notes
 

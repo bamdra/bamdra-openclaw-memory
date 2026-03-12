@@ -155,8 +155,8 @@ Then edit `~/.openclaw/openclaw.json` and merge in the plugin settings shown in:
 
 The plugin directories you point OpenClaw at are:
 
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-context-engine`
-- `/Users/mac/workspace/openclaw-enhanced/bamdra-memory/plugins/bamdra-memory-tools`
+- `<repo-root>/bamdra-memory/plugins/bamdra-memory-context-engine`
+- `<repo-root>/bamdra-memory/plugins/bamdra-memory-tools`
 
 ## Quick Start
 
@@ -177,7 +177,7 @@ Example overlays:
 
 ## Documentation
 
-### English
+### English Docs
 
 - [Product Overview](./docs/en/overview.md)
 - [Installation Guide](./docs/en/installation.md)
@@ -185,7 +185,7 @@ Example overlays:
 - [Usage Guide](./docs/en/usage.md)
 - [Prompting Guide](./docs/en/prompting.md)
 
-### Chinese
+### 中文文档
 
 - [产品概览](./docs/zh-CN/overview.md)
 - [安装指南](./docs/zh-CN/installation.md)

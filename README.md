@@ -16,9 +16,9 @@ This repository publishes the current `bamdra-memory` implementation as a standa
 ## Start Here
 
 - English:
-  [bamdra-memory README](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/README.md)
+  [bamdra-memory README](./bamdra-memory/README.md)
 - 中文：
-  [bamdra-memory README.zh-CN](/Users/mac/workspace/openclaw-enhanced/bamdra-memory/README.zh-CN.md)
+  [bamdra-memory README.zh-CN](./bamdra-memory/README.zh-CN.md)
 
 ## Repository Layout
 
