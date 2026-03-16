@@ -43,56 +43,49 @@
 
 本地编译更适合开发者。
 
-## 开发者从源码构建
+## 直接使用 Release 安装
+
+### 第 1 步：下载并解压
 
 ```bash
-git clone <你的 fork 或 release 源码地址>
-cd openclaw-topic-memory
-pnpm install
+mkdir -p ~/Downloads/openclaw-topic-memory
+cd ~/Downloads/openclaw-topic-memory
+unzip openclaw-topic-memory-release.zip
 ```
 
-## 第二步：构建插件
+解压后，你应该能看到至少这些内容：
+
+- `bamdra-memory-context-engine/`
+- `bamdra-memory-tools/`
+- `examples/configs/`
+- `INSTALL.md`
+
+### 第 2 步：把插件复制到 OpenClaw 目录
 
 ```bash
-pnpm build
+mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
+cp -R ./bamdra-memory-context-engine ~/.openclaw/extensions/
+cp -R ./bamdra-memory-tools ~/.openclaw/extensions/
 ```
 
-如果你想先确认代码是健康的，再执行：
-
-```bash
-pnpm test
-```
-
-## 第三步：准备 SQLite 目录
-
-```bash
-mkdir -p ~/.openclaw/memory
-```
-
-默认推荐数据库路径：
+### 第 3 步：SQLite 建议路径
 
 ```text
 ~/.openclaw/memory/main.sqlite
 ```
 
-## 第四步：把插件目录接入 OpenClaw
+### 第 4 步：把配置合并到 `~/.openclaw/openclaw.json`
 
 OpenClaw 需要加载这两个目录：
 
 - `~/.openclaw/extensions/bamdra-memory-context-engine`
 - `~/.openclaw/extensions/bamdra-memory-tools`
 
-也就是说，你不是把代码“发布”到哪里，而是让 OpenClaw 直接从本地目录加载插件。
-
-## 第五步：修改 `~/.openclaw/openclaw.json`
-
-打开：
-
 ```text
 ~/.openclaw/openclaw.json
 ```
 
-把下面这些内容合并进去，不要粗暴覆盖整个 `plugins` 对象。
+把 release 里的配置片段合并进去，不要粗暴覆盖整个 `plugins` 对象。
 
 ### 最常用安装方式：SQLite + 本地内存缓存
 
@@ -115,7 +108,7 @@ OpenClaw 需要加载这两个目录：
       ]
     },
     "slots": {
-      "contextEngine": "bamdra-memory-context-engine"
+      "memory": "bamdra-memory-context-engine"
     },
     "entries": {
       "bamdra-memory-context-engine": {
@@ -150,7 +143,7 @@ OpenClaw 需要加载这两个目录：
 - `plugins.load.paths` 里要加 tools 插件目录
 - `plugins.entries` 里要加 `bamdra-memory-tools`
 
-## 第六步：重启 OpenClaw
+### 第 5 步：重启 OpenClaw
 
 配置改完后，重启 OpenClaw。
 
@@ -158,16 +151,41 @@ OpenClaw 需要加载这两个目录：
 
 你可以用下面这种真实对话测试：
 
-1. “下个月去哪边旅游比较好？”
-2. “如果去大阪，有哪些一定要吃的东西？”
-3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发文件过去。”
-4. “继续说旅游。如果只有一个短周末，大阪和京都哪个更适合吃东西？”
+1. “下个月想在国内找个地方短途旅游。”
+2. “如果去成都，先吃什么比较值？”
+3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发方案过去。”
+4. “继续说旅游。如果只有一个周末，成都和杭州选哪个更合适？”
+5. “请记住，我订酒店更偏好离地铁站近一点。”
+6. “那这趟行程住在哪一片会更方便？”
 
 如果安装正常，实际效果应该是：
 
 - 旅游线索在处理完工作邮件后还能自然接上
 - “吃什么”这条支线仍然和旅游主线保持关联
 - 工作邮件不会污染后面的旅游建议
+- 保存过的酒店偏好可以在后面直接被用上
+
+## 开发者从源码构建
+
+只有在你需要改代码时才建议走这条路：
+
+```bash
+git clone git@github.com:bamdra/openclaw-topic-memory.git
+cd openclaw-topic-memory
+pnpm install
+pnpm build
+pnpm test
+```
+
+然后把：
+
+- `./bamdra-memory/plugins/bamdra-memory-context-engine`
+- `./bamdra-memory/plugins/bamdra-memory-tools`
+
+复制到：
+
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 ## 推荐继续做的一步
 
@@ -175,4 +193,4 @@ OpenClaw 需要加载这两个目录：
 
 - [提示词与文件写法](./prompting.md)
 
-因为插件接上只是第一步。真正决定体验的是：agent 知不知道什么时候该保存、搜索、切 topic。
+因为插件接上只是第一步。真正决定体验的是：agent 知不知道什么时候该保存、搜索，以及安静地接回较早的上下文。

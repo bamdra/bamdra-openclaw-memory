@@ -9,14 +9,16 @@
     "bamdra-*/skills/*"
   ],
   "scripts": {
-    "build": "tsc -b",
-    "clean": "find . -name dist -type d -prune -exec rm -rf {} +",
+    "build": "tsc -b --clean && tsc -b && pnpm --filter @openclaw-enhanced/bamdra-memory-context-engine run bundle && pnpm --filter @openclaw-enhanced/bamdra-memory-tools run bundle && node ./scripts/copy-assets.mjs",
+    "clean": "find . -name dist -type d -prune -exec rm -rf {} + && find . -name tsconfig.tsbuildinfo -delete",
+    "package:release": "node ./scripts/package-release.mjs",
     "typecheck": "tsc -b --pretty false",
     "test": "pnpm typecheck && pnpm build && node --test bamdra-*/tests/**/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
     "redis": "^5.11.0",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.2"
   }
 }

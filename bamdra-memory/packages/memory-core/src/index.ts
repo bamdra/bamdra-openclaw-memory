@@ -201,24 +201,12 @@ export interface MemoryV2StoreConfig {
   path: string;
 }
 
-export interface MemoryV2MemoryCacheConfig {
+export interface MemoryV2CacheConfig {
   provider: "memory";
   maxSessions?: number;
   maxTopicsPerSession?: number;
   maxFacts?: number;
 }
-
-export interface MemoryV2RedisCacheConfig {
-  provider: "redis";
-  url: string;
-  keyPrefix?: string;
-  ttlSeconds?: number;
-  fallbackToMemory?: boolean;
-}
-
-export type MemoryV2CacheConfig =
-  | MemoryV2MemoryCacheConfig
-  | MemoryV2RedisCacheConfig;
 
 export interface MemoryV2Config {
   enabled: boolean;

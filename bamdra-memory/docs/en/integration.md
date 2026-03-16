@@ -19,7 +19,7 @@ Merge the following into `~/.openclaw/openclaw.json`:
 2. add `bamdra-memory-context-engine` to `plugins.allow`
 3. optionally add `bamdra-memory-tools` to `plugins.allow`
 4. append both plugin paths to `plugins.load.paths`
-5. set `plugins.slots.contextEngine = "bamdra-memory-context-engine"`
+5. set `plugins.slots.memory = "bamdra-memory-context-engine"`
 6. add config entries under `plugins.entries`
 
 Do not overwrite the whole `plugins` object if you already use other plugins.
@@ -71,7 +71,7 @@ If you only need the tool plugin overlay:
       ]
     },
     "slots": {
-      "contextEngine": "bamdra-memory-context-engine"
+      "memory": "bamdra-memory-context-engine"
     },
     "entries": {
       "bamdra-memory-context-engine": {

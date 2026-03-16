@@ -11,6 +11,7 @@ export class TopicRouter {
   route(input: TopicRoutingInput): TopicRoutingDecision {
     const normalizedText = normalize(input.text);
     const hasShiftSignal = containsShiftSignal(normalizedText);
+    const hasExplicitNewTopicSignal = containsExplicitNewTopicSignal(normalizedText);
 
     if (!normalizedText) {
       if (input.activeTopicId) {
@@ -31,6 +32,14 @@ export class TopicRouter {
     const activeTopic = input.recentTopics.find(
       (topic) => topic.id === input.activeTopicId,
     );
+
+    if (hasExplicitNewTopicSignal) {
+      return {
+        action: "spawn",
+        topicId: null,
+        reason: "explicit-new-topic-signal",
+      };
+    }
 
     if (
       activeTopic &&
@@ -220,9 +229,40 @@ function containsShiftSignal(value: string): boolean {
     "切回",
     "转到",
     "换到",
+    "换个话题",
+    "换一个话题",
+    "聊聊",
+    "回到",
+    "重新聊",
+    "换个主题",
+    "切换到",
     "switch to",
     "move to",
     "back to",
+    "new topic",
+  ].some((marker) => value.includes(marker));
+}
+
+function containsExplicitNewTopicSignal(value: string): boolean {
+  return [
+    "新的 topic",
+    "新的topic",
+    "新 topic",
+    "新topic",
+    "这是一个新的",
+    "这是新的话题",
+    "这是一个新的话题",
+    "开启一个新话题",
+    "开始一个新话题",
+    "开一个新话题",
+    "换个新话题",
+    "我们开启一个新话题",
+    "现在开始一个新话题",
+    "从这页重新开始",
+    "重新开始一个话题",
+    "let's start a new topic",
+    "start a new topic",
+    "this is a new topic",
   ].some((marker) => value.includes(marker));
 }
 

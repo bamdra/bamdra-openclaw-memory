@@ -3,11 +3,13 @@
 ## Goals
 
 - Keep prompt size bounded.
-- Avoid losing critical context when topic switches occur.
+- Avoid losing critical context when the conversation is interrupted and later resumed.
 - Support non-linear conversations inside a single session.
+- Support both implicit topic recovery and explicit topic switching inside a single session.
 - Persist state across restarts.
 - Stay lightweight in single-node deployments.
 - Allow optional Redis-backed cache without changing the persistence model.
+- Preserve agent and user isolation boundaries.
 
 ## Non-Goals
 
@@ -15,6 +17,7 @@
 - full distributed system design in v1
 - replacing every existing OpenClaw memory feature
 - storing all memory only in Markdown files
+- cross-user or cross-agent private memory recall
 
 ## High-Level Layers
 
@@ -28,6 +31,7 @@ Responsibilities:
 - transactional writes
 - restart recovery
 - structured queries
+- preserve data for the owning agent/session boundary
 
 ### 2. Cache Store
 
@@ -46,10 +50,11 @@ Responsibilities:
 Responsibilities:
 
 - receive message and tool events
-- route messages into topics
-- maintain active topic per session
+- route messages into conversation tracks
+- maintain the current working context per session
 - assemble prompt context before model execution
 - trigger summary refresh and compaction
+- respect runtime isolation boundaries instead of widening them
 
 ### 4. Tool Layer
 
@@ -57,7 +62,7 @@ Responsibilities:
 
 - explicit memory write
 - explicit search
-- topic listing and switching
+- topic inspection and manual control
 - forced compaction
 
 ## Core Runtime Flow
@@ -69,13 +74,13 @@ Responsibilities:
 3. Update cache for the active session.
 4. Extract lightweight message features.
 
-### Topic Route
+### Conversation Routing
 
 For each new user turn:
 
 1. Compare against current active topic.
 2. Compare against recent active topics in the same session.
-3. Continue current topic, switch to existing topic, or create a new topic.
+3. Continue current topic, recover an existing topic, or create a new topic.
 4. Store topic membership with confidence and routing reason.
 
 ### Context Assembly
@@ -119,6 +124,8 @@ This supports reliable recall of:
 - security constraints
 - stable preferences
 
+Facts are still scoped inside runtime boundaries. Durable storage should improve continuity for the same conversation owner, not create a cross-user memory leak.
+
 ## Default Context Recipe
 
 For a normal turn, inject:
@@ -130,6 +137,7 @@ For a normal turn, inject:
 - topic-matched pinned facts
 
 Do not inject full session history by default.
+Do not treat another agent's session or another user's conversation as part of the same recall scope.
 
 ## Cache Backends
 
@@ -172,3 +180,12 @@ If the process restarts:
 
 - persistent data remains in SQLite
 - active topic can be reconstructed from the latest session state and topic activity
+
+## Runtime Validation Notes
+
+The current implementation has been hardened for OpenClaw runtime behavior observed in real deployments:
+
+- the `memory` slot must be occupied by `bamdra-memory-context-engine`
+- built-in `memory-core` should be denied to avoid slot conflicts
+- tool plugins may run without a shared in-process engine, so they must be able to bootstrap from the same SQLite config
+- explicit tool registration is required to avoid shadowing by built-in tools

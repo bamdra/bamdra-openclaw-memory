@@ -35,59 +35,28 @@
           }
         },
         "cache": {
-          "oneOf": [
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "provider"
-              ],
-              "properties": {
-                "provider": {
-                  "const": "memory"
-                },
-                "maxSessions": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "maxTopicsPerSession": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "maxFacts": {
-                  "type": "integer",
-                  "minimum": 1
-                }
-              }
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider"
+          ],
+          "properties": {
+            "provider": {
+              "const": "memory"
             },
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "provider",
-                "url"
-              ],
-              "properties": {
-                "provider": {
-                  "const": "redis"
-                },
-                "url": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "keyPrefix": {
-                  "type": "string"
-                },
-                "ttlSeconds": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "fallbackToMemory": {
-                  "type": "boolean"
-                }
-              }
+            "maxSessions": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxTopicsPerSession": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxFacts": {
+              "type": "integer",
+              "minimum": 1
             }
-          ]
+          }
         },
         "topicRouting": {
           "type": "object",

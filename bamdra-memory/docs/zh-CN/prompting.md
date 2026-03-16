@@ -19,10 +19,10 @@
 
 用户先说：
 
-> 我们刚才在聊去日本旅游。
-> 如果去大阪，哪些东西最值得吃？
+> 我们刚才在聊国内短途旅游。
+> 如果去成都，先吃什么比较值？
 > 我突然收到一个工作邮件，先帮我回一下。
-> 好，继续说旅游，短周末的话大阪和京都哪个更适合？
+> 好，继续说旅游，短周末的话成都和杭州哪个更适合？
 
 理想行为是：
 
@@ -47,41 +47,71 @@
 
 ## SKILL.md 写法示例
 
-如果你要维护一个本地 memory-operator skill，建议保持很薄、很直接：
+如果你要维护一个本地 memory-operator skill，建议保持很薄，但要把“判定原则”写清楚，而不是只写工具清单。
+
+这一步是可选增强，不是运行 `bamdra-memory` 的前置依赖：
 
 ```md
+---
+name: memory-operator
+description: 当连续性重要时，使用 memory tools；当对话疑似切换 topic、恢复旧话题或需要复用稳定事实时，优先做语义判断。
+---
+
 # Memory Operator
 
-当连续性重要时，使用 memory tools。
+当连续性重要时，使用 memory tools，让连续性更自然。
 
-- 对稳定的路径、偏好、环境信息、账号引用和约束，使用 `memory_save_fact`。
-- 在要求用户重复事实之前，先用 `memory_search`。
-- 只有在需要显式控制时，才使用 `memory_list_topics` 和 `memory_switch_topic`。
-- 当某个分支方向变化明显时，使用 `memory_compact_topic` 刷新摘要。
+- 先做语义判断，再选工具，不要把短语匹配当成唯一依据。
+- 当用户明确要记住某事、某个稳定事实后续大概率要复用时，使用 `memory_save_fact`。
+- 当对话疑似回到旧线程时，在要求用户重复之前，先用 `memory_search`。
+- 当用户明确要切换、恢复或隔离某个话题分支时，再使用 `memory_list_topics` / `memory_switch_topic`。
+- 当某个分支已经明显改向、摘要失真时，使用 `memory_compact_topic`。
+- 保持 agent / user 隔离，不要跨边界取回不该暴露的记忆。
 ```
 
-不要试图在 skill 文本里重写一遍整个记忆系统。
+不要试图在 skill 文本里重写一遍整个记忆系统，也不要靠枚举所有“用户可能怎么说”来完成 topic 切换。
+
+## 最佳实践
+
+更推荐的思路是：
+
+- 插件层负责提供稳定、可验证的记忆基础设施
+- skill 层负责教 agent 什么时候应该认为“这是新 topic”、“这是回到旧 topic”、“这里需要长期记忆”
+- 规则只做少量兜底，不和自然语言表达做穷举对抗
+
+一个更像 AI 产品的 memory skill，应该做到：
+
+- 优先按语义判断 topic 是否变化，而不是只认固定句式
+- 在不确定时，宁可保守地留在当前 topic，也不要把无关记忆强行拉进来
+- 在回答依赖旧事实时，优先搜索记忆，而不是直接要求用户重复
+- 把“记忆在工作”藏在后面，让对话仍然像自然对话
+
+如果要给 operator 一份推荐 skill，建议直接复用仓库里的：
+
+- [`skills/bamdra-memory-operator/SKILL.md`](../../skills/bamdra-memory-operator/SKILL.md)
 
 ## TOOLS.md 写法示例
 
-`TOOLS.md` 适合放“本机环境专属事实”，方便 agent 后续保存或比对：
+`TOOLS.md` 只适合放“本机环境专属事实”，方便 agent 后续保存或比对：
 
 ```md
 ## Memory Targets
 
-- default workspace path: ~/.openclaw/workspaces/main
+- 默认 workspace 路径：`~/.openclaw/workspace`
 - preferred extensions path: ~/.openclaw/extensions
 - preferred redis db for testing: redis://127.0.0.1:6379/0
 ```
 
 这样 agent 在写记忆时就会更具体，而不是只记一个模糊描述。
 
+不要把 `TOOLS.md` 写成 skill 清单、授权表或命令手册。工具能力定义、使用边界和命令写法应当放在 `SKILL.md`。
+
 ## 对用户可见的表达风格
 
 比较好的说法：
 
 - “这个偏好我会记住。”
-- “接着刚才的话题看，大阪可能更适合。”
+- “接着刚才的话题看，成都可能更适合。”
 - “我从之前的记录里找到了这个账号提示。”
 
 不太好的说法：
@@ -93,6 +123,7 @@
 ## 推荐落地步骤
 
 1. 在 `AGENTS.md` 加一小段 memory policy。
-2. 如果你用 skill，再加一个薄的 operator skill。
-3. 在 `TOOLS.md` 里记录环境专属事实。
+2. 如果你希望 agent 更稳定地调用记忆工具，再加一个薄的 operator skill，并把重点放在“判定原则”而不是“命令手册”。
+3. 在 `TOOLS.md` 里记录环境专属事实，而不是能力定义。
 4. 平时让 agent 安静地使用 memory，除非用户明确要看细节。
+5. 把 agent / user 隔离边界写进 prompt policy，避免为了“连续性”误取不该取的记忆。

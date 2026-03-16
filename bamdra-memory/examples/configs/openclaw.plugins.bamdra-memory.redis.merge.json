@@ -12,7 +12,7 @@
       ]
     },
     "slots": {
-      "contextEngine": "bamdra-memory-context-engine"
+      "memory": "bamdra-memory-context-engine"
     },
     "entries": {
       "bamdra-memory-context-engine": {

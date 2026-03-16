@@ -19,8 +19,10 @@
 2. 将 `bamdra-memory-context-engine` 加入 `plugins.allow`
 3. 如需工具，再将 `bamdra-memory-tools` 加入 `plugins.allow`
 4. 把两个插件路径追加到 `plugins.load.paths`
-5. 设置 `plugins.slots.contextEngine = "bamdra-memory-context-engine"`
-6. 在 `plugins.entries` 下补充配置
+5. 设置 `plugins.slots.memory = "bamdra-memory-context-engine"`
+6. 兼容当前 OpenClaw 版本时，同时设置 `plugins.slots.contextEngine = "bamdra-memory-context-engine"`
+7. 将 `memory-core` 加入 `plugins.deny`
+8. 在 `plugins.entries` 下补充配置
 
 如果你已经启用了其他插件，不要直接覆盖整个 `plugins` 对象。
 
@@ -71,7 +73,7 @@
       ]
     },
     "slots": {
-      "contextEngine": "bamdra-memory-context-engine"
+      "memory": "bamdra-memory-context-engine"
     },
     "entries": {
       "bamdra-memory-context-engine": {
@@ -103,6 +105,17 @@
 - 开启 Redis 时必须设置独立 `keyPrefix`
 - 修改配置后需要重启 OpenClaw
 - 合并配置时要保留你现有的插件状态
+- 如果内置 `memory-core` 没有被 deny，它可能会抢占 `memory` slot
+- 当前运行时里，tools 插件不应假设一定能拿到同进程的 engine 实例
+
+## 隔离边界
+
+接入成功以后，`bamdra-memory` 也不应该被理解成“全局共享记忆”：
+
+- agent 与 agent 之间默认隔离
+- 用户与用户之间默认隔离
+- topic 恢复发生在单一会话内部
+- 显式保存的事实也必须服从运行时隔离边界
 
 ## 当前接入边界
 

@@ -4,7 +4,7 @@ This guide wires `bamdra-memory` into a real OpenClaw install that already has o
 
 ## What OpenClaw Expects
 
-OpenClaw discovers local plugins from `plugins.load.paths`, configures them under `plugins.entries.<id>.config`, and selects the active context engine through `plugins.slots.contextEngine`.
+OpenClaw discovers local plugins from `plugins.load.paths`, configures them under `plugins.entries.<id>.config`, and selects the active memory engine through the plugin slot configuration.
 
 References:
 
@@ -30,8 +30,10 @@ Do not replace the whole `plugins` object in `~/.openclaw/openclaw.json` if you 
    - `bamdra-memory-tools`
 3. Append local plugin directories to `plugins.load.paths`.
 4. Set `plugins.slots.contextEngine = "bamdra-memory-context-engine"`.
-5. Add `plugins.entries.bamdra-memory-context-engine`.
-6. Add `plugins.entries.bamdra-memory-tools`.
+5. Set `plugins.slots.memory = "bamdra-memory-context-engine"`.
+6. Add `"memory-core"` to `plugins.deny`.
+7. Add `plugins.entries.bamdra-memory-context-engine`.
+8. Add `plugins.entries.bamdra-memory-tools`.
 
 ## Example Overlays
 
@@ -53,6 +55,24 @@ Tool plugin only:
 - Always set a dedicated Redis `keyPrefix` so cache keys do not collide with other services.
 - Config changes require a gateway restart.
 - Your current `~/.openclaw/openclaw.json` already has other plugin state; merge carefully instead of overwriting.
+- In current OpenClaw builds, setting both `plugins.slots.memory` and `plugins.slots.contextEngine` is the safest compatibility choice.
+- If `memory-core` is still enabled, it can preempt the slot and disable the third-party engine even when the plugin is loaded.
+
+## Runtime Hardening
+
+The current bundle includes a few defensive behaviors that matter in production:
+
+- the tools plugin explicitly registers its tools instead of relying on discovery side effects
+- the tools plugin can bootstrap its own engine from the same SQLite config if the runtime does not share a live engine instance across processes
+- the context engine can recover from partial runtime config and still resolve the SQLite path
+
+## Scope Boundary
+
+`bamdra-memory` is for continuity inside the correct conversation boundary.
+
+- do not treat it as cross-user shared memory
+- do not use it to bypass agent isolation
+- topic recovery should happen inside a single session, not across unrelated sessions
 
 ## Current Gap
 

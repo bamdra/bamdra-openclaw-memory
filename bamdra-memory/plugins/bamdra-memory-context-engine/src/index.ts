@@ -1,7 +1,6 @@
 import { ContextAssembler } from "@openclaw-enhanced/context-assembler";
 import { FactExtractor } from "@openclaw-enhanced/fact-extractor";
 import { InMemoryCacheStore } from "@openclaw-enhanced/memory-cache-memory";
-import { RedisCacheStore } from "@openclaw-enhanced/memory-cache-redis";
 import type {
   AssembledContext,
   CacheStore,
@@ -21,11 +20,32 @@ import { MemorySqliteStore } from "@openclaw-enhanced/memory-sqlite";
 import { SummaryRefresher } from "@openclaw-enhanced/summary-refresher";
 import { TopicRouter } from "@openclaw-enhanced/topic-router";
 import { createHash, randomUUID } from "node:crypto";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+const ENGINE_GLOBAL_KEY = "__OPENCLAW_BAMDRA_MEMORY_CONTEXT_ENGINE__";
+const DEFAULT_DB_PATH = join(
+  homedir(),
+  ".openclaw",
+  "memory",
+  process.env.OPENCLAW_BAMDRA_MEMORY_DB_BASENAME || "main.sqlite",
+);
+
+function logMemoryEvent(event: string, details: Record<string, unknown> = {}): void {
+  try {
+    console.info("[bamdra-memory]", event, JSON.stringify(details));
+  } catch {
+    console.info("[bamdra-memory]", event);
+  }
+}
 
 export interface ContextEngineMemoryV2Plugin {
   name: string;
-  slot: "contextEngine";
+  type: "context-engine";
+  slot: "memory";
+  capabilities: ["memory"];
   config: MemoryV2Config;
+  registerHooks(api: unknown): void;
   setup(): Promise<void>;
   close(): Promise<void>;
   listTopics(sessionId: string): Promise<
@@ -66,30 +86,151 @@ export interface ContextEngineMemoryV2Plugin {
   }>;
 }
 
+type InternalHookOptions = {
+  name?: string;
+  description?: string;
+  priority?: number;
+};
+
+type InternalHookHandler = (event: unknown) => unknown | Promise<unknown>;
+
+type InternalHookRegistrar = (
+  events: string | string[],
+  handler: InternalHookHandler,
+  opts?: InternalHookOptions,
+) => void;
+
 export function createContextEngineMemoryV2Plugin(
-  config: MemoryV2Config,
+  inputConfig: Partial<MemoryV2Config> | MemoryV2Config | undefined,
+  api?: unknown,
 ): ContextEngineMemoryV2Plugin {
+  const config = normalizeMemoryConfig(inputConfig);
   const store = new MemorySqliteStore({
     path: config.store.path,
   });
-  const cache = createCacheStore(config);
+  let cache: CacheStore = new InMemoryCacheStore(config.cache as { provider: "memory"; maxSessions?: number; maxTopicsPerSession?: number; maxFacts?: number });
   const router = new TopicRouter(config);
   const assembler = new ContextAssembler(config);
   const factExtractor = new FactExtractor(config);
   const summaryRefresher = new SummaryRefresher(config);
 
-  return {
+  // 延迟初始化模式：在首次使用时自动执行数据库迁移
+  let migrationsApplied = false;
+  let migrationsPromise: Promise<void> | null = null;
+
+  async function ensureMigrations(): Promise<void> {
+    if (migrationsApplied) return;
+    if (migrationsPromise) return migrationsPromise;
+
+    migrationsPromise = store.applyMigrations().then(() => {
+      migrationsApplied = true;
+    });
+
+    return migrationsPromise;
+  }
+
+  let hooksRegistered = false;
+
+  const plugin: ContextEngineMemoryV2Plugin = {
     name: "bamdra-memory-context-engine",
-    slot: "contextEngine",
+    type: "context-engine",
+    slot: "memory" as const,
+    capabilities: ["memory"],
     config,
+    registerHooks(hostApi: unknown): void {
+      if (hooksRegistered) {
+        return;
+      }
+
+      const registerHook = getInternalHookRegistrar(hostApi);
+      const registerTypedHook = getTypedHookRegistrar(hostApi);
+
+      if (registerHook) {
+        registerHook(
+          ["message:received", "message:preprocessed"],
+          async (event: unknown) => {
+            const sessionId = getSessionIdFromHookContext(event);
+            const text = getTextFromHookContext(event);
+            logMemoryEvent("hook-ingest-received", {
+              hasSessionId: Boolean(sessionId),
+              textPreview: typeof text === "string" ? text.slice(0, 80) : null,
+            });
+            if (!sessionId || !text) {
+              return;
+            }
+
+            const result = await plugin.routeAndTrack(sessionId, text);
+            logMemoryEvent("hook-ingest-tracked", {
+              sessionId,
+              action: result.decision.action,
+              reason: result.decision.reason,
+              topicId: result.topicId,
+              messageId: result.messageId,
+            });
+          },
+          {
+            name: "bamdra-memory-ingest",
+            description: "Track inbound conversation turns into bamdra memory topics and facts",
+          },
+        );
+      } else {
+        logMemoryEvent("register-hooks-skipped", { reason: "registerHook unavailable" });
+      }
+
+      if (registerTypedHook) {
+        registerTypedHook("before_prompt_build", async (event: unknown, hookContext: unknown) => {
+          const sessionId = getSessionIdFromHookContext(hookContext);
+          const text = getTextFromHookContext(event);
+          logMemoryEvent("hook-assemble-received", {
+            hasSessionId: Boolean(sessionId),
+            hasText: Boolean(text),
+          });
+          if (!sessionId) {
+            return;
+          }
+
+          if (text) {
+            const result = await plugin.routeAndTrack(sessionId, text);
+            logMemoryEvent("hook-before-prompt-tracked", {
+              sessionId,
+              action: result.decision.action,
+              reason: result.decision.reason,
+              topicId: result.topicId,
+              messageId: result.messageId,
+            });
+          }
+
+          const assembled = await plugin.assembleContext(sessionId);
+          logMemoryEvent("hook-assemble-complete", {
+            sessionId,
+            topicId: assembled.topicId,
+            sections: assembled.sections.length,
+          });
+
+          return buildBeforePromptBuildResult(assembled);
+        });
+      } else {
+        logMemoryEvent("register-typed-hooks-skipped", { reason: "typed hook registrar unavailable" });
+      }
+
+      if (!registerHook && !registerTypedHook) {
+        return;
+      }
+
+      logMemoryEvent("register-hooks-complete", {
+        internalHooks: registerHook ? ["message:received", "message:preprocessed"] : [],
+        typedHooks: registerTypedHook ? ["before_prompt_build"] : [],
+      });
+      hooksRegistered = true;
+    },
     async setup(): Promise<void> {
-      await store.applyMigrations();
+      await ensureMigrations();
     },
     async close(): Promise<void> {
-      await cache.close?.();
       await store.close();
     },
     async listTopics(sessionId: string) {
+      await ensureMigrations();
       const sessionState = await resolveSessionState(store, cache, sessionId);
       const topics = await store.listTopics(sessionId);
       return topics.map((topic) => ({
@@ -98,6 +239,7 @@ export function createContextEngineMemoryV2Plugin(
       }));
     },
     async switchTopic(sessionId: string, topicId: string): Promise<TopicRecord> {
+      await ensureMigrations();
       const topic = await store.getTopic(topicId);
       if (!topic || topic.sessionId !== sessionId) {
         throw new Error(`Topic ${topicId} does not belong to session ${sessionId}`);
@@ -124,16 +266,20 @@ export function createContextEngineMemoryV2Plugin(
         updatedAt: now,
       });
 
+      logMemoryEvent("switch-topic", { sessionId, topicId, title: updatedTopic.title });
+
       return updatedTopic;
     },
     async saveFact(args) {
+      await ensureMigrations();
       const now = new Date().toISOString();
       const sessionState = await resolveSessionState(store, cache, args.sessionId);
       const resolvedTopicId = args.topicId ?? sessionState?.activeTopicId ?? null;
       const resolvedTopic =
         resolvedTopicId != null ? await store.getTopic(resolvedTopicId) : null;
+      const normalizedScope = normalizeFactScope(args.scope, args.sessionId);
       const scope =
-        args.scope ??
+        normalizedScope ??
         (resolvedTopic != null ? `topic:${resolvedTopic.id}` : "shared");
       const tags = dedupeTextItems([
         ...(resolvedTopic?.labels ?? []),
@@ -162,12 +308,21 @@ export function createContextEngineMemoryV2Plugin(
         await refreshTopicSummary(store, summaryRefresher, config, resolvedTopic.id, now);
       }
 
+      logMemoryEvent("save-fact", {
+        sessionId: args.sessionId,
+        topicId: resolvedTopic?.id ?? null,
+        key: args.key,
+        scope,
+        tags,
+      });
+
       return {
         topicId: resolvedTopic?.id ?? null,
         tags,
       };
     },
     async compactTopic(args) {
+      await ensureMigrations();
       const now = new Date().toISOString();
       const sessionState = await resolveSessionState(store, cache, args.sessionId);
       const topicId = args.topicId ?? sessionState?.activeTopicId ?? null;
@@ -199,9 +354,16 @@ export function createContextEngineMemoryV2Plugin(
         updatedAt: now,
       });
 
+      logMemoryEvent("compact-topic", {
+        sessionId: args.sessionId,
+        topicId: refreshedTopic.id,
+        title: refreshedTopic.title,
+      });
+
       return refreshedTopic;
     },
     async searchMemory(args) {
+      await ensureMigrations();
       const sessionState = await resolveSessionState(store, cache, args.sessionId);
       const limit = args.limit ?? 5;
       const resolvedTopicId = args.topicId ?? sessionState?.activeTopicId ?? null;
@@ -223,6 +385,7 @@ export function createContextEngineMemoryV2Plugin(
       };
     },
     async routeTopic(sessionId: string, text: string): Promise<TopicRoutingDecision> {
+      await ensureMigrations();
       const persistedState = await resolveSessionState(store, cache, sessionId);
       const recentTopics = await store.listTopics(sessionId);
 
@@ -234,6 +397,7 @@ export function createContextEngineMemoryV2Plugin(
       });
     },
     async assembleContext(sessionId: string): Promise<AssembledContext> {
+      await ensureMigrations();
       const sessionState = await resolveSessionState(store, cache, sessionId);
       const topic =
         sessionState?.activeTopicId != null
@@ -242,11 +406,13 @@ export function createContextEngineMemoryV2Plugin(
       const recentMessages =
         topic != null
           ? await store.listRecentMessagesForTopic(
-              topic.id,
-              config.contextAssembly?.recentTurns ?? 6,
-            )
+            topic.id,
+            config.contextAssembly?.recentTurns ?? 6,
+          )
           : [];
       const alwaysFacts = await store.listFactsByScope("global");
+      const sharedFacts = await store.listFactsByScope("shared");
+      const sessionFacts = await store.listFactsByScope(`session:${sessionId}`);
       const scopedTopicFacts =
         topic != null ? await store.listFactsByScope(`topic:${topic.id}`) : [];
       const labelFacts =
@@ -258,11 +424,12 @@ export function createContextEngineMemoryV2Plugin(
         sessionId,
         topic,
         recentMessages,
-        alwaysFacts,
+        alwaysFacts: dedupeFacts([...alwaysFacts, ...sharedFacts, ...sessionFacts]),
         topicFacts: dedupeFacts([...scopedTopicFacts, ...labelFacts]),
       });
     },
     async routeAndTrack(sessionId: string, text: string) {
+      await ensureMigrations();
       const cachedState = await cache.getSessionState(sessionId);
       const persistedState = cachedState
         ? mapCachedStateToSessionState(sessionId, cachedState)
@@ -332,10 +499,10 @@ export function createContextEngineMemoryV2Plugin(
           decision.action === "spawn"
             ? topicRecord
             : {
-                ...topicRecord,
-                openLoops: mergeOpenLoops(topicRecord.openLoops, text),
-                lastActiveAt: now,
-              },
+              ...topicRecord,
+              openLoops: mergeOpenLoops(topicRecord.openLoops, text),
+              lastActiveAt: now,
+            },
       });
       for (const candidate of extractedFacts) {
         await store.upsertFact(
@@ -363,6 +530,14 @@ export function createContextEngineMemoryV2Plugin(
         updatedAt: now,
       });
 
+      logMemoryEvent("route-and-track", {
+        sessionId,
+        action: decision.action,
+        reason: decision.reason,
+        topicId,
+        extractedFactCount: extractedFacts.length,
+      });
+
       return {
         decision,
         topicId,
@@ -370,6 +545,9 @@ export function createContextEngineMemoryV2Plugin(
       };
     },
   };
+
+  plugin.registerHooks(api);
+  return plugin;
 }
 
 async function resolveSessionState(
@@ -381,14 +559,6 @@ async function resolveSessionState(
   return cachedState
     ? mapCachedStateToSessionState(sessionId, cachedState)
     : store.getSessionState(sessionId);
-}
-
-function createCacheStore(config: MemoryV2Config): CacheStore {
-  if (config.cache.provider === "redis") {
-    return new RedisCacheStore(config.cache);
-  }
-
-  return new InMemoryCacheStore(config.cache);
 }
 
 function mapCachedStateToSessionState(
@@ -420,6 +590,25 @@ function createFactId(scope: string, key: string): string {
     .slice(0, 16);
 
   return `fact-${digest}`;
+}
+
+function normalizeFactScope(
+  scope: string | undefined,
+  sessionId: string,
+): string | null {
+  if (typeof scope !== "string") {
+    return null;
+  }
+
+  const normalized = scope.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+  if (normalized === "session") {
+    return `session:${sessionId}`;
+  }
+
+  return normalized;
 }
 
 function createSpawnedTopic(
@@ -576,4 +765,289 @@ async function refreshTopicSummary(
   };
   await store.upsertTopic(updatedTopic);
   return updatedTopic;
+}
+
+function normalizeMemoryConfig(
+  inputConfig: Partial<MemoryV2Config> | MemoryV2Config | undefined,
+): MemoryV2Config {
+  return {
+    enabled: inputConfig?.enabled ?? true,
+    store: {
+      provider: "sqlite",
+      path:
+        inputConfig?.store?.path ||
+        process.env.OPENCLAW_BAMDRA_MEMORY_DB_PATH ||
+        process.env.OPENCLAW_MEMORY_DB_PATH ||
+        DEFAULT_DB_PATH,
+    },
+    cache: {
+      provider: "memory",
+      maxSessions: inputConfig?.cache?.maxSessions ?? 128,
+      maxTopicsPerSession: inputConfig?.cache?.maxTopicsPerSession ?? 64,
+      maxFacts: inputConfig?.cache?.maxFacts ?? 2048,
+    },
+    topicRouting: {
+      maxRecentTopics: inputConfig?.topicRouting?.maxRecentTopics ?? 12,
+      newTopicThreshold: inputConfig?.topicRouting?.newTopicThreshold ?? 0.28,
+      switchTopicThreshold:
+        inputConfig?.topicRouting?.switchTopicThreshold ?? 0.55,
+    },
+    contextAssembly: {
+      recentTurns: inputConfig?.contextAssembly?.recentTurns ?? 6,
+      includeTopicShortSummary:
+        inputConfig?.contextAssembly?.includeTopicShortSummary ?? true,
+      includeOpenLoops:
+        inputConfig?.contextAssembly?.includeOpenLoops ?? true,
+      alwaysFactLimit: inputConfig?.contextAssembly?.alwaysFactLimit ?? 12,
+      topicFactLimit: inputConfig?.contextAssembly?.topicFactLimit ?? 16,
+    },
+  };
+}
+
+export function register(api: {
+  registerHook?: InternalHookRegistrar;
+  on?: (
+    hookName: string,
+    handler: (event: unknown, context: unknown) => unknown | Promise<unknown>,
+    opts?: { priority?: number },
+  ) => void;
+  pluginConfig?: Partial<MemoryV2Config>;
+  registerContextEngine: (
+    id: string,
+    factory: (config: MemoryV2Config) => ContextEngineMemoryV2Plugin | Promise<ContextEngineMemoryV2Plugin>,
+  ) => void;
+}): void {
+  logMemoryEvent("register-context-engine", { id: "bamdra-memory-context-engine" });
+  const plugin = createContextEngineMemoryV2Plugin(api.pluginConfig, api);
+  exposeContextEngine(plugin);
+  plugin.registerHooks(api);
+  api.registerContextEngine("bamdra-memory-context-engine", async (config) => {
+    if (config?.store?.path && config.store.path !== plugin.config.store.path) {
+      const configuredPlugin = createContextEngineMemoryV2Plugin(config, api);
+      await configuredPlugin.setup();
+      exposeContextEngine(configuredPlugin);
+      configuredPlugin.registerHooks(api);
+      logMemoryEvent("context-engine-ready", {
+        id: configuredPlugin.name,
+        dbPath: configuredPlugin.config.store.path,
+      });
+      return configuredPlugin;
+    }
+    await plugin.setup();
+    logMemoryEvent("context-engine-ready", {
+      id: plugin.name,
+      dbPath: plugin.config.store.path,
+    });
+    return plugin;
+  });
+}
+
+export async function activate(api: {
+  registerHook?: InternalHookRegistrar;
+  on?: (
+    hookName: string,
+    handler: (event: unknown, context: unknown) => unknown | Promise<unknown>,
+    opts?: { priority?: number },
+  ) => void;
+  pluginConfig?: Partial<MemoryV2Config>;
+  registerContextEngine: (
+    id: string,
+    factory: (config: MemoryV2Config) => ContextEngineMemoryV2Plugin | Promise<ContextEngineMemoryV2Plugin>,
+  ) => void;
+}): Promise<void> {
+  logMemoryEvent("activate-context-engine", { id: "bamdra-memory-context-engine" });
+  const plugin = createContextEngineMemoryV2Plugin(api.pluginConfig, api);
+  exposeContextEngine(plugin);
+  plugin.registerHooks(api);
+  api.registerContextEngine("bamdra-memory-context-engine", async (config) => {
+    if (config?.store?.path && config.store.path !== plugin.config.store.path) {
+      const configuredPlugin = createContextEngineMemoryV2Plugin(config, api);
+      await configuredPlugin.setup();
+      exposeContextEngine(configuredPlugin);
+      configuredPlugin.registerHooks(api);
+      logMemoryEvent("context-engine-ready", {
+        id: configuredPlugin.name,
+        dbPath: configuredPlugin.config.store.path,
+      });
+      return configuredPlugin;
+    }
+    await plugin.setup();
+    logMemoryEvent("context-engine-ready", {
+      id: plugin.name,
+      dbPath: plugin.config.store.path,
+    });
+    return plugin;
+  });
+}
+
+function exposeContextEngine(plugin: ContextEngineMemoryV2Plugin): void {
+  (globalThis as Record<string, unknown>)[ENGINE_GLOBAL_KEY] = plugin;
+  process.env.OPENCLAW_BAMDRA_MEMORY_DB_PATH = plugin.config.store.path;
+}
+
+function getInternalHookRegistrar(api: unknown):
+  | InternalHookRegistrar
+  | null {
+  if (!api || typeof api !== "object") {
+    return null;
+  }
+
+  const registrar = (api as { registerHook?: unknown }).registerHook;
+  if (typeof registrar !== "function") {
+    return null;
+  }
+
+  return registrar.bind(api);
+}
+
+function getTypedHookRegistrar(api: unknown):
+  | ((
+    hookName: string,
+    handler: (event: unknown, context: unknown) => unknown | Promise<unknown>,
+    opts?: { priority?: number },
+  ) => void)
+  | null {
+  if (!api || typeof api !== "object") {
+    return null;
+  }
+
+  const registrar = (api as { on?: unknown }).on;
+  if (typeof registrar !== "function") {
+    return null;
+  }
+
+  return registrar.bind(api);
+}
+
+function getSessionIdFromHookContext(context: unknown): string | null {
+  if (!context || typeof context !== "object") {
+    return null;
+  }
+
+  const candidate = context as {
+    sessionKey?: unknown;
+    sessionId?: unknown;
+    session?: { id?: unknown };
+    conversation?: { id?: unknown };
+    metadata?: { sessionId?: unknown };
+    input?: { sessionId?: unknown; session?: { id?: unknown } };
+    context?: { sessionId?: unknown };
+  };
+
+  const sessionId =
+    candidate.sessionKey ??
+    candidate.sessionId ??
+    candidate.session?.id ??
+    candidate.conversation?.id ??
+    candidate.metadata?.sessionId ??
+    candidate.context?.sessionId ??
+    candidate.input?.sessionId ??
+    candidate.input?.session?.id;
+
+  return typeof sessionId === "string" && sessionId.trim() ? sessionId : null;
+}
+
+function getTextFromHookContext(context: unknown): string | null {
+  if (!context || typeof context !== "object") {
+    return null;
+  }
+
+  const candidate = context as {
+    text?: unknown;
+    prompt?: unknown;
+    body?: unknown;
+    bodyForAgent?: unknown;
+    context?: {
+      body?: unknown;
+      bodyForAgent?: unknown;
+      text?: unknown;
+      content?: unknown;
+    };
+    input?: unknown;
+    message?: { text?: unknown; content?: unknown };
+    messages?: Array<{ role?: string; text?: unknown; content?: unknown }>;
+  };
+
+  const directText = normalizeHookText(
+    candidate.bodyForAgent ??
+    candidate.body ??
+    candidate.prompt ??
+    candidate.text ??
+    candidate.context?.bodyForAgent ??
+    candidate.context?.body ??
+    candidate.context?.text ??
+    candidate.context?.content,
+  );
+  if (directText) {
+    return directText;
+  }
+
+  const messageText = normalizeHookText(candidate.message?.text ?? candidate.message?.content);
+  if (messageText) {
+    return messageText;
+  }
+
+  const inputText = extractTextFromInput(candidate.input);
+  if (inputText) {
+    return inputText;
+  }
+
+  const lastUserMessage = [...(candidate.messages ?? [])]
+    .reverse()
+    .find((message) => (message.role ?? "user") === "user");
+  return normalizeHookText(lastUserMessage?.text ?? lastUserMessage?.content);
+}
+
+function extractTextFromInput(input: unknown): string | null {
+  if (typeof input === "string") {
+    return normalizeHookText(input);
+  }
+
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const candidate = input as {
+    text?: unknown;
+    content?: unknown;
+    message?: { text?: unknown; content?: unknown };
+    messages?: Array<{ role?: string; text?: unknown; content?: unknown }>;
+  };
+
+  const directText = normalizeHookText(candidate.text ?? candidate.content);
+  if (directText) {
+    return directText;
+  }
+
+  const messageText = normalizeHookText(candidate.message?.text ?? candidate.message?.content);
+  if (messageText) {
+    return messageText;
+  }
+
+  const lastUserMessage = [...(candidate.messages ?? [])]
+    .reverse()
+    .find((message) => (message.role ?? "user") === "user");
+  return normalizeHookText(lastUserMessage?.text ?? lastUserMessage?.content);
+}
+
+function normalizeHookText(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized ? normalized : null;
+}
+
+function buildBeforePromptBuildResult(assembled: AssembledContext): {
+  prependSystemContext?: string;
+} | undefined {
+  const text = assembled.text.trim();
+  if (!text) {
+    return undefined;
+  }
+
+  return {
+    prependSystemContext: text,
+  };
 }

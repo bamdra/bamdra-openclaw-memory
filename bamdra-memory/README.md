@@ -23,10 +23,11 @@ With `bamdra-memory`, it feels more like working with a notebook that has tabs:
 
 You talk to OpenClaw like this:
 
-1. "Let's figure out where to travel next month."
-2. "If we go to Osaka, what food should we prioritize?"
-3. "I just got a work email. Help me draft a polite reply saying I can deliver the file tomorrow morning."
-4. "Back to the trip. Between Osaka and Kyoto, which is better for a short food-focused weekend?"
+1. "Let's plan a short trip in China for next month."
+2. "If we go to Chengdu, what should we eat first?"
+3. "I just got a work email. Help me draft a polite reply saying I can send the proposal tomorrow morning."
+4. "Back to the trip. If we only have one weekend, should we pick Chengdu or Hangzhou?"
+5. "Please remember that I prefer hotels near a subway station."
 
 Expected result:
 
@@ -34,6 +35,7 @@ Expected result:
 - the food thread still feels connected to the travel plan
 - the work-email detour does not pollute the later travel answer
 - the assistant feels continuous without needing to explain what it did internally
+- the hotel preference can be reused later without asking again
 
 ## What It Is
 
@@ -53,21 +55,34 @@ People usually install `bamdra-memory` for one of these reasons:
 - they run long sessions with many interruptions and topic changes
 - they want the assistant to remember stable facts without repeating them every hour
 - they want the assistant to naturally return to earlier conversation threads
-- they want memory to survive restarts
+- they want the same agent and session to survive restarts cleanly
 
 ## Design Goals
 
 - Keep prompt size bounded.
 - Preserve important facts across topic drift.
 - Support non-linear conversations inside one session.
+- Support both implicit topic recovery and explicit topic control inside one session.
+- Preserve agent and user isolation boundaries.
 - Default to lightweight local deployment.
 - Keep Redis optional and cache-only.
 - Keep OpenClaw-facing plugin code thin.
 
+## Isolation Boundaries
+
+`bamdra-memory` is not designed as a global shared memory pool.
+
+- memory is isolated across agents by default
+- memory is isolated across users and sessions by default
+- topic switching happens inside one conversation boundary
+- durable facts still need to respect the runtime's agent and session isolation rules
+
+For open source users, the right mental model is "continuity within the right boundary", not "cross-user recall".
+
 ## Core Capabilities
 
-- `Topic routing`
-  Keep unrelated conversations separated and recover earlier threads naturally.
+- `Implicit continuity`
+  Keep unrelated conversations separated in the background and recover earlier threads naturally.
 - `Context assembly`
   Build prompt context from recent topic turns, summaries, open loops, and pinned facts.
 - `Durable fact recall`
@@ -75,7 +90,7 @@ People usually install `bamdra-memory` for one of these reasons:
 - `Explicit operator tools`
   Use `memory_list_topics`, `memory_switch_topic`, `memory_save_fact`, `memory_compact_topic`, and `memory_search`.
 - `Restart recovery`
-  Reconstruct active state from SQLite after process restarts.
+  Reconstruct active state from SQLite for the same agent and session after process restarts.
 - `Optional Redis cache`
   Share hot session state across processes without changing the persistence model.
 
@@ -106,7 +121,7 @@ People usually install `bamdra-memory` for one of these reasons:
 - `schemas/`
   JSON schemas for config and tool contracts.
 - `skills/`
-  Operator-facing usage guidance.
+  Operator-facing usage guidance and optional behavior-layer skills.
 - `tests/`
   Integration coverage for routing, tools, search, and context assembly.
 
@@ -114,78 +129,117 @@ People usually install `bamdra-memory` for one of these reasons:
 
 ### Prerequisites
 
+- OpenClaw
 - Node.js 22.x or newer
-- pnpm 10.x
-- OpenClaw with local plugin loading enabled
-- SQLite available through Node's built-in `node:sqlite`
+- a writable `~/.openclaw/` directory
 
-### Install Dependencies
+## Quick Start For Most Users
 
-```bash
-pnpm install
-```
+Most users should use the prebuilt release package instead of building from source.
 
-### Build
-
-```bash
-pnpm build
-```
-
-### Verify
+1. Download the latest release archive from GitHub Releases.
+2. Unzip it.
+3. Copy these folders into `~/.openclaw/extensions/`:
+   - `bamdra-memory-context-engine`
+   - `bamdra-memory-tools`
+4. Create the SQLite directory:
 
 ```bash
-pnpm test
+mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
 ```
 
-## Recommended Installation
-
-For normal users, the recommended path is:
-
-1. download a compiled release package
-2. place the plugin folders under `~/.openclaw/extensions/`
-3. enable them in `~/.openclaw/openclaw.json`
-
-Local building from source is mainly for developers.
-
-## Developer Build From Source
-
-If you want to build from source:
-
-```bash
-git clone <your-fork-or-release-source>
-cd openclaw-topic-memory
-pnpm install
-pnpm build
-mkdir -p ~/.openclaw/memory
-```
-
-Then edit `~/.openclaw/openclaw.json` and merge in the plugin settings shown in:
-
-- [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-- [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
+5. Merge the config from one of these examples into `~/.openclaw/openclaw.json`:
+   - [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
+   - [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
+6. Restart OpenClaw.
 
 The plugin directories OpenClaw should load are:
 
 - `~/.openclaw/extensions/bamdra-memory-context-engine`
 - `~/.openclaw/extensions/bamdra-memory-tools`
 
-## Quick Start
+For a step-by-step release install flow, read:
 
-1. Download the compiled release or build from source.
-2. Put the plugin folders under `~/.openclaw/extensions/`.
-3. Merge one of the example configs into your OpenClaw config.
-4. Load those directories under `plugins.load.paths`.
-5. Set `plugins.slots.contextEngine = "bamdra-memory-context-engine"`.
-6. Restart OpenClaw.
+- [Installation Guide](./docs/en/installation.md)
+- [Prompting And Best Practices](./docs/en/prompting.md)
 
-Example overlays:
+## Developer Build From Source
 
-- Local SQLite + in-memory cache:
-  [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-- SQLite + Redis cache:
-  [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
-- Tools-only overlay:
-  [openclaw.plugins.bamdra-memory-tools.json](./examples/configs/openclaw.plugins.bamdra-memory-tools.json)
+If you want to build from source:
+
+```bash
+git clone git@github.com:bamdra/openclaw-topic-memory.git
+cd openclaw-topic-memory
+pnpm install
+pnpm build
+pnpm test
+mkdir -p ~/.openclaw/memory
+```
+
+Then copy the built plugin folders from:
+
+- `./bamdra-memory/plugins/bamdra-memory-context-engine`
+- `./bamdra-memory/plugins/bamdra-memory-tools`
+
+into:
+
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
+
+## Quick Demo
+
+If installation is working, a conversation like this should feel natural:
+
+1. "Let's plan a weekend trip in China."
+2. "If we go to Chengdu, what food should we prioritize?"
+3. "I just got a work email. Help me write a polite reply."
+4. "Back to the trip. If we only have one weekend, should we pick Chengdu or Hangzhou?"
+5. "Please remember that I prefer hotels near a subway station."
+6. "For that trip, which area is easier if I care about subway access?"
+
+What you should notice:
+
+- the travel conversation still feels coherent after the work interruption
+- the assistant does not narrate internal memory operations
+- the saved hotel preference becomes usable later
+
+## Why Not Just Summaries?
+
+- summaries alone are easy to overwrite when the conversation drifts
+- stable facts should not depend on whether they survive in a paragraph
+- long sessions work better when continuity and recall are separate responsibilities
+
+## FAQ
+
+### Do I need Redis?
+
+No. SQLite plus the in-process cache is the default and recommended setup for most users.
+
+### Do I need to manually switch topics?
+
+Usually no. Most recovery should happen quietly in the background. Explicit tools are there for operators and special cases.
+
+### Does it survive restarts?
+
+Yes, for the same agent and session boundary. It is not meant to bypass user or agent isolation.
+
+## Validate The Workspace
+
+If you are working from source, validate with:
+
+```bash
+pnpm test
+```
+
+## Pre-release Validation
+
+The current release candidate has been verified against these runtime issues:
+
+- `memory` slot binding to `bamdra-memory-context-engine`
+- explicit denial of built-in `memory-core`
+- tool-side fallback bootstrap when the runtime engine is not shared across processes
+- explicit registration for both `memory_*` and `bamdra_*` tool names
+- SQLite write path and restart recovery
 
 ## Documentation
 

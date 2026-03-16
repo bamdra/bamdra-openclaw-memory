@@ -2,8 +2,11 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { createContextEngineMemoryV2Plugin } from "../../plugins/bamdra-memory-context-engine/dist/index.js";
-import { createToolsMemoryV2Plugin } from "../../plugins/bamdra-memory-tools/dist/index.js";
+import contextEnginePlugin from "../../plugins/bamdra-memory-context-engine/dist/index.js";
+import toolsPlugin from "../../plugins/bamdra-memory-tools/dist/index.js";
+
+const { createContextEngineMemoryV2Plugin } = contextEnginePlugin;
+const { createToolsMemoryV2Plugin } = toolsPlugin;
 
 export async function createMemoryFixture(overrides = {}) {
   const dir = mkdtempSync(join(tmpdir(), "openclaw-enhanced-test-"));

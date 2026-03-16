@@ -6,6 +6,8 @@
 - Cache stores only derived or hot state.
 - JSONL logs remain useful for audit trails, but are not the primary query model.
 
+This model exists to support a user-facing effect: after an interruption, the assistant can return to the earlier line of work without replaying the whole chat.
+
 ## Core Tables
 
 ### `messages`
@@ -26,7 +28,7 @@ Suggested fields:
 
 ### `topics`
 
-Stores logical conversation branches within a session.
+Stores logical conversation threads within a session.
 
 Suggested fields:
 
@@ -44,7 +46,7 @@ Suggested fields:
 
 ### `topic_membership`
 
-Maps messages to one or more topics.
+Maps messages to one or more conversation threads.
 
 Suggested fields:
 
@@ -57,7 +59,7 @@ Suggested fields:
 
 ### `facts`
 
-Stores stable, recallable knowledge.
+Stores stable, recallable knowledge that should survive conversation drift.
 
 Suggested fields:
 
@@ -136,7 +138,7 @@ Suggested fields:
 
 ## Topic Labels
 
-Topic summaries are not enough.
+Topic summaries are not enough on their own.
 
 Topics should also have labels such as:
 

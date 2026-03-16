@@ -16,6 +16,12 @@ The tool layer should not reimplement routing or storage logic. It delegates to 
 
 ## Current Tools
 
+`bamdra_list_topics`, `bamdra_switch_topic`, `bamdra_save_fact`, `bamdra_compact_topic`, and `bamdra_search`
+are aliases for the same runtime operations exposed as `memory_list_topics`, `memory_switch_topic`,
+`memory_save_fact`, `memory_compact_topic`, and `memory_search`.
+
+This document uses the `memory_*` names as canonical labels.
+
 ### `memory_list_topics`
 
 List known topics for a session.
@@ -69,7 +75,7 @@ Input:
 {
   "sessionId": "session-a",
   "key": "workspace.default",
-  "value": "~/.openclaw/workspaces/main",
+  "value": "~/.openclaw/workspace",
   "category": "environment",
   "recallPolicy": "always",
   "tags": ["workspace", "openclaw"]
@@ -155,6 +161,26 @@ Use `memory_search` when:
 - the user asks whether a topic or fact already exists
 - the agent needs to recover a fact without reloading the entire branch
 - the branch exists but the exact topic id is unknown
+
+## Quick Role Map
+
+- `memory_list_topics`: inspect session branches before acting
+- `memory_switch_topic`: activate one existing branch
+- `memory_save_fact`: pin a durable fact for later recall
+- `memory_compact_topic`: refresh stale topic summaries
+- `memory_search`: retrieve stored topics or facts before asking again
+
+## Typical Trigger Logic
+
+Use this mental model:
+
+1. If the agent needs visibility into existing branches, start with `memory_list_topics`.
+2. If the user clearly wants to resume or isolate one known branch, use `memory_switch_topic`.
+3. If a stable fact should survive later topic drift, use `memory_save_fact`.
+4. If a branch summary no longer reflects the branch state, use `memory_compact_topic`.
+5. If the answer may already exist in memory but the exact branch is unknown, use `memory_search`.
+
+These are not meant to fire on every turn. The better pattern is semantic judgment first, then the smallest tool action that improves continuity.
 
 ## Non-Goals
 

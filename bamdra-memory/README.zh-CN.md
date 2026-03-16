@@ -22,10 +22,11 @@
 
 你和 OpenClaw 这样对话：
 
-1. “下个月去哪边旅游比较好？”
-2. “如果去大阪，有哪些一定要吃的东西？”
-3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发文件过去。”
-4. “继续说旅游。如果只有一个短周末，大阪和京都哪个更适合吃东西？”
+1. “下个月想在国内找个地方短途旅游。”
+2. “如果去成都，先吃什么比较值？”
+3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发方案过去。”
+4. “继续说旅游。如果只有一个周末，成都和杭州选哪个更合适？”
+5. “请记住，我订酒店更偏好离地铁站近一点。”
 
 理想效果是：
 
@@ -33,6 +34,7 @@
 - “吃什么”这条支线仍然和旅游主线保持关联
 - 工作邮件不会污染后面的旅游建议
 - 整个过程对用户来说是自然连续的，不需要系统解释内部动作
+- 住酒店靠近地铁站这个偏好，后面可以直接用上
 
 ## 它是什么
 
@@ -52,20 +54,33 @@
 - 会话很长，而且经常被别的话题或任务打断
 - 不想重复告诉模型同样的路径、规则和偏好
 - 希望 assistant 能自然接回之前的话题
-- 希望重启后状态还能恢复
+- 希望同一 agent、同一会话在重启后仍能恢复有效上下文
 
 ## 设计目标
 
 - 控制提示词体积
 - 在 topic 漂移后仍能保留关键事实
 - 支持单 session 内的非线性对话
+- 支持同一会话内的隐式 topic 恢复与显式 topic 控制
+- 保持 agent 之间、用户之间的记忆隔离
 - 默认适配轻量本地部署
 - Redis 仅作为可选缓存，不作为事实源
 - 让 OpenClaw 侧插件保持轻薄
 
+## 隔离边界
+
+`bamdra-memory` 的设计前提不是“全局共享记忆”，而是“在正确的会话边界里提供连续性”。
+
+- 不同 agent 的记忆默认隔离
+- 不同用户/会话的记忆默认隔离
+- topic 切换发生在单个会话内部，不用于跨用户或跨 agent 共享隐私信息
+- 显式保存的事实也必须服从运行时的会话与 agent 边界
+
+对外发布时，应该把它理解成“同一会话连续性增强”，而不是“全局知识库”。
+
 ## 核心能力
 
-- `话题路由`
+- `隐式连续性恢复`
   在后台自动把不同话题分开，并在需要时恢复之前的线索。
 - `上下文装配`
   从最近消息、摘要、open loops 和 pinned facts 中拼装当前 prompt 上下文。
@@ -74,7 +89,7 @@
 - `显式运维工具`
   支持 `memory_list_topics`、`memory_switch_topic`、`memory_save_fact`、`memory_compact_topic`、`memory_search`。
 - `重启恢复`
-  进程重启后可从 SQLite 恢复活跃状态。
+  进程重启后可从 SQLite 恢复同一 agent / 同一会话的活跃状态。
 - `可选 Redis 缓存`
   在多进程场景共享热状态，但不改变持久化模型。
 
@@ -105,7 +120,7 @@
 - `schemas/`
   配置与工具契约的 JSON Schema。
 - `skills/`
-  面向 operator 的技能说明。
+  面向 operator 的技能说明与可选的行为增强层。
 - `tests/`
   覆盖路由、工具、搜索、上下文装配的集成测试。
 
@@ -113,78 +128,117 @@
 
 ### 前置条件
 
+- OpenClaw
 - Node.js 22.x 或更新版本
-- pnpm 10.x
-- 已启用本地插件加载的 OpenClaw
-- 可通过 Node 内建 `node:sqlite` 使用 SQLite
+- 可写入的 `~/.openclaw/` 目录
 
-### 安装依赖
+## 普通用户快速开始
+
+普通用户更适合直接使用 GitHub Releases 里的已编译版本，而不是本地构建源码。
+
+1. 下载最新 release 压缩包
+2. 解压
+3. 把下面两个目录拷贝到 `~/.openclaw/extensions/`：
+   - `bamdra-memory-context-engine`
+   - `bamdra-memory-tools`
+4. 准备 SQLite 目录：
 
 ```bash
+mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
+```
+
+5. 把以下任一示例配置合并进 `~/.openclaw/openclaw.json`：
+   - [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
+   - [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
+6. 重启 OpenClaw
+
+OpenClaw 需要加载的插件路径是：
+
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
+
+更完整的 release 安装说明见：
+
+- [安装指南](./docs/zh-CN/installation.md)
+- [提示词与最佳实践](./docs/zh-CN/prompting.md)
+
+## 开发者从源码构建
+
+如果你要从源码构建：
+
+```bash
+git clone git@github.com:bamdra/openclaw-topic-memory.git
+cd openclaw-topic-memory
 pnpm install
-```
-
-### 构建
-
-```bash
 pnpm build
+pnpm test
+mkdir -p ~/.openclaw/memory
 ```
 
-### 验证
+然后把构建后的插件目录：
+
+- `./bamdra-memory/plugins/bamdra-memory-context-engine`
+- `./bamdra-memory/plugins/bamdra-memory-tools`
+
+复制到：
+
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
+
+## 快速效果演示
+
+如果安装正常，下面这种对话应该会显得比较自然：
+
+1. “下个月想在中国找个地方过周末。”
+2. “如果去成都，先吃什么比较值？”
+3. “我刚收到一个工作邮件，帮我礼貌回复一下。”
+4. “继续说旅游。如果只有一个周末，成都和杭州该选哪个？”
+5. “请记住，我订酒店更偏好靠近地铁站。”
+6. “那这趟行程住在哪一片会更方便？”
+
+你应该感受到的是：
+
+- 工作插曲之后，旅游线还能自然接上
+- assistant 不会向用户汇报内部记忆机制
+- 保存过的地铁站偏好能在后面直接被用上
+
+## 为什么不只靠摘要？
+
+- 只靠摘要，很容易在话题漂移后把重点覆盖掉
+- 稳定事实不应该只靠某一段总结碰运气
+- 长会话里，“连续性”和“事实召回”最好分开处理
+
+## 常见问题
+
+### 一定要用 Redis 吗？
+
+不需要。对大多数用户来说，SQLite 加进程内缓存已经够用。
+
+### 需要手动切换 topic 吗？
+
+通常不需要。大部分上下文恢复都应该在后台无感完成，显式工具主要留给 operator 和特殊场景。
+
+### 重启后还能接上吗？
+
+可以，但这里说的是同一 agent、同一会话边界内的恢复。`bamdra-memory` 并不以跨用户、跨 agent 共享私有记忆为目标。
+
+## 源码模式下的验证
+
+如果你是从源码运行，可以用下面命令验证：
 
 ```bash
 pnpm test
 ```
 
-## 推荐安装方式
+## 发布前验证
 
-对普通用户来说，推荐方式是：
+这次开源前的修复已经覆盖了下面这些关键点：
 
-1. 下载已经编译好的 release 版本
-2. 把插件目录放到 `~/.openclaw/extensions/`
-3. 在 `~/.openclaw/openclaw.json` 里启用它们
-
-本地编译更适合开发者。
-
-## 开发者从源码构建
-
-如果你想从源码构建：
-
-```bash
-git clone <你的 fork 或 release 源码地址>
-cd openclaw-topic-memory
-pnpm install
-pnpm build
-mkdir -p ~/.openclaw/memory
-```
-
-然后编辑 `~/.openclaw/openclaw.json`，把下面这些配置片段合并进去：
-
-- [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-- [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
-
-OpenClaw 需要加载的插件目录是：
-
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
-
-## 快速开始
-
-1. 下载编译好的 release，或从源码构建。
-2. 把插件目录放到 `~/.openclaw/extensions/`。
-3. 选择一个示例配置合并到你的 OpenClaw 配置中。
-4. 把这些目录加入 `plugins.load.paths`。
-5. 设置 `plugins.slots.contextEngine = "bamdra-memory-context-engine"`。
-6. 重启 OpenClaw。
-
-示例配置：
-
-- 本地 SQLite + 内存缓存：
-  [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-- SQLite + Redis 缓存：
-  [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
-- 仅工具插件：
-  [openclaw.plugins.bamdra-memory-tools.json](./examples/configs/openclaw.plugins.bamdra-memory-tools.json)
+- `memory` slot 绑定到 `bamdra-memory-context-engine`
+- 显式屏蔽内置 `memory-core`
+- tools 插件在拿不到共享 runtime engine 时可按同一 SQLite 配置自举
+- `memory_*` 与 `bamdra_*` 两套工具名都显式注册
+- SQLite 写入和重启后恢复链路已实测通过
 
 ## 文档
 

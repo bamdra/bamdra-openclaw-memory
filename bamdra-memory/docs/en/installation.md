@@ -41,56 +41,49 @@ For normal users, the recommended path is:
 
 Local building from source is mainly for developers.
 
-## Developer Build From Source
+## Install From Release
+
+### Step 1: Download and Unzip
 
 ```bash
-git clone <your-fork-or-release-source>
-cd openclaw-topic-memory
-pnpm install
+mkdir -p ~/Downloads/openclaw-topic-memory
+cd ~/Downloads/openclaw-topic-memory
+unzip openclaw-topic-memory-release.zip
 ```
 
-## Step 2: Build the Plugins
+After unzip, you should have a folder that contains at least:
+
+- `bamdra-memory-context-engine/`
+- `bamdra-memory-tools/`
+- `examples/configs/`
+- `INSTALL.md`
+
+### Step 2: Copy the Plugins Into OpenClaw
 
 ```bash
-pnpm build
+mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
+cp -R ./bamdra-memory-context-engine ~/.openclaw/extensions/
+cp -R ./bamdra-memory-tools ~/.openclaw/extensions/
 ```
 
-If you want to verify the workspace first:
-
-```bash
-pnpm test
-```
-
-## Step 3: Prepare the SQLite Directory
-
-```bash
-mkdir -p ~/.openclaw/memory
-```
-
-Recommended SQLite path:
+### Step 3: Use This SQLite Path
 
 ```text
 ~/.openclaw/memory/main.sqlite
 ```
 
-## Step 4: Point OpenClaw at the Plugin Directories
+### Step 4: Merge Config Into `~/.openclaw/openclaw.json`
 
 OpenClaw should load these directories directly:
 
 - `~/.openclaw/extensions/bamdra-memory-context-engine`
 - `~/.openclaw/extensions/bamdra-memory-tools`
 
-So the installation model is simple: build the repo, then let OpenClaw load the plugin roots from the filesystem.
-
-## Step 5: Edit `~/.openclaw/openclaw.json`
-
-Open:
-
 ```text
 ~/.openclaw/openclaw.json
 ```
 
-Merge in the plugin settings. Do not replace the whole `plugins` object if you already use other plugins.
+Merge in the plugin settings from the release bundle. Do not replace the whole `plugins` object if you already use other plugins.
 
 ### Most Common Setup: SQLite + Local Memory Cache
 
@@ -113,7 +106,7 @@ The core shape looks like this:
       ]
     },
     "slots": {
-      "contextEngine": "bamdra-memory-context-engine"
+      "memory": "bamdra-memory-context-engine"
     },
     "entries": {
       "bamdra-memory-context-engine": {
@@ -148,7 +141,7 @@ The important parts are:
 - add the tools plugin directory to `plugins.load.paths`
 - add a `plugins.entries.bamdra-memory-tools` entry
 
-## Step 6: Restart OpenClaw
+### Step 5: Restart OpenClaw
 
 Restart OpenClaw after saving the config.
 
@@ -156,16 +149,41 @@ Restart OpenClaw after saving the config.
 
 Try this real conversation:
 
-1. "Let's figure out where to travel next month."
-2. "If we go to Osaka, what food should we prioritize?"
-3. "I just got a work email. Help me write a polite reply saying I can send the file tomorrow morning."
-4. "Back to the trip. Between Osaka and Kyoto, which works better for a short food-focused weekend?"
+1. "Let's plan a short trip in China next month."
+2. "If we go to Chengdu, what food should we prioritize?"
+3. "I just got a work email. Help me write a polite reply saying I can send the proposal tomorrow morning."
+4. "Back to the trip. If we only have one weekend, should we pick Chengdu or Hangzhou?"
+5. "Please remember that I prefer hotels near a subway station."
+6. "For that trip, which area is easier if I care about subway access?"
 
 If the installation is working, you should see this effect:
 
 - the travel conversation still feels coherent after the email interruption
 - the food discussion still feels connected to the travel planning
 - the email detour does not pollute the later travel answer
+- the saved hotel preference can be reused later
+
+## Developer Build From Source
+
+Use this only if you want to modify the code:
+
+```bash
+git clone git@github.com:bamdra/openclaw-topic-memory.git
+cd openclaw-topic-memory
+pnpm install
+pnpm build
+pnpm test
+```
+
+Then copy:
+
+- `./bamdra-memory/plugins/bamdra-memory-context-engine`
+- `./bamdra-memory/plugins/bamdra-memory-tools`
+
+into:
+
+- `~/.openclaw/extensions/bamdra-memory-context-engine`
+- `~/.openclaw/extensions/bamdra-memory-tools`
 
 ## Recommended Next Step
 
@@ -173,4 +191,4 @@ After installation, read:
 
 - [Prompting Guide](./prompting.md)
 
-Connecting the plugin is only half the job. The user experience also depends on whether your agent knows when to save memory, search memory, and switch topics.
+Connecting the plugin is only half the job. The user experience also depends on whether your agent knows when to save memory, search memory, and recover earlier context naturally.

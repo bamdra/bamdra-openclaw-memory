@@ -4,14 +4,12 @@ Topic-aware memory for OpenClaw with durable recall. 为 OpenClaw 提供话题�
 
 This repository publishes the current `bamdra-memory` implementation as a standalone OpenClaw memory project.
 
-## What This Repo Gives You
+## Why It Is Useful
 
-- topic-aware conversation branches
-- durable fact recall for paths, constraints, preferences, and references
-- compact active-context assembly
-- SQLite persistence by default
-- optional Redis cache for hot state
-- explicit memory tools for switching, saving, compacting, and searching memory
+- long OpenClaw sessions stay coherent across interruptions
+- stable preferences, paths, and constraints can be reused later
+- the active context stays compact instead of replaying whole chat histories
+- SQLite persistence is built in, with Redis kept optional
 
 ## Start Here
 
@@ -34,6 +32,10 @@ pnpm install
 pnpm build
 pnpm test
 ```
+
+## Recommended Public Description
+
+`Topic-aware memory for OpenClaw with durable recall. 为 OpenClaw 提供话题感知记忆与持久召回。`
 
 ## Current Position
 

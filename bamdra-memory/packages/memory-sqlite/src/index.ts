@@ -472,6 +472,7 @@ export class MemorySqliteStore implements PersistentStore {
 
     const likeValue = `%${escapeLike(normalizedQuery)}%`;
     const topicScope = args.topicId ? `topic:${args.topicId}` : null;
+    const sessionScope = `session:${args.sessionId}`;
     const rows = this.db
       .prepare(
         `SELECT
@@ -492,6 +493,7 @@ export class MemorySqliteStore implements PersistentStore {
          LEFT JOIN fact_tags ft_all ON ft_all.fact_id = f.id
          WHERE (
             f.scope IN ('global', 'shared')
+            OR f.scope = ?
             OR f.scope = ?
             OR f.source_topic_id IN (
               SELECT id FROM topics WHERE session_id = ?
@@ -518,7 +520,7 @@ export class MemorySqliteStore implements PersistentStore {
          ORDER BY f.updated_at DESC
          LIMIT ?`,
       )
-      .all(topicScope, args.sessionId, likeValue, likeValue, likeValue, likeValue, args.limit) as unknown as FactRow[];
+      .all(sessionScope, topicScope, args.sessionId, likeValue, likeValue, likeValue, likeValue, args.limit) as unknown as FactRow[];
 
     return rows
       .map((row) => mapFactSearchResult(row, normalizedQuery))
