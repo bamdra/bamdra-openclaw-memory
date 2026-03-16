@@ -1,0 +1,36 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/context-assembler"
+    },
+    {
+      "path": "../../packages/fact-extractor"
+    },
+    {
+      "path": "../../packages/summary-refresher"
+    },
+    {
+      "path": "../../packages/memory-cache-memory"
+    },
+    {
+      "path": "../../packages/memory-cache-redis"
+    },
+    {
+      "path": "../../packages/memory-core"
+    },
+    {
+      "path": "../../packages/memory-sqlite"
+    },
+    {
+      "path": "../../packages/topic-router"
+    }
+  ]
+}

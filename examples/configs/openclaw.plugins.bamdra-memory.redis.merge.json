@@ -1,0 +1,48 @@
+{
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "bamdra-memory-context-engine",
+      "bamdra-memory-tools"
+    ],
+    "load": {
+      "paths": [
+        "~/.openclaw/extensions/bamdra-memory-context-engine",
+        "~/.openclaw/extensions/bamdra-memory-tools"
+      ]
+    },
+    "slots": {
+      "memory": "bamdra-memory-context-engine"
+    },
+    "entries": {
+      "bamdra-memory-context-engine": {
+        "enabled": true,
+        "config": {
+          "enabled": true,
+          "store": {
+            "provider": "sqlite",
+            "path": "~/.openclaw/memory/main.sqlite"
+          },
+          "cache": {
+            "provider": "redis",
+            "url": "redis://127.0.0.1:6379/0",
+            "keyPrefix": "openclaw:memory-v2:",
+            "ttlSeconds": 21600,
+            "fallbackToMemory": true
+          },
+          "contextAssembly": {
+            "recentTurns": 6,
+            "includeTopicShortSummary": true,
+            "includeOpenLoops": true,
+            "alwaysFactLimit": 12,
+            "topicFactLimit": 16
+          }
+        }
+      },
+      "bamdra-memory-tools": {
+        "enabled": true,
+        "config": {}
+      }
+    }
+  }
+}

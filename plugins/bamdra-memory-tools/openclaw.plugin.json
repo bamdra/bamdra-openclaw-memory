@@ -1,0 +1,12 @@
+{
+  "id": "bamdra-memory-tools",
+  "type": "tool",
+  "name": "Bamdra Memory Tools",
+  "description": "Explicit topic control tools for bamdra-memory",
+  "main": "./dist/index.js",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

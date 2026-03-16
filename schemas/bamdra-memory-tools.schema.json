@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/openclaw-enhanced/schemas/bamdra-memory-tools.schema.json",
+  "title": "bamdra-memory-tools schemas",
+  "type": "object",
+  "definitions": {
+    "memory_list_topics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "memory_switch_topic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "topicId"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "topicId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "memory_save_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "key",
+        "value"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "enum": ["background", "environment", "account", "security", "preference", "project", "decision", "constraint"]
+        },
+        "sensitivity": {
+          "type": "string",
+          "enum": ["normal", "sensitive", "secret_ref"]
+        },
+        "recallPolicy": {
+          "type": "string",
+          "enum": ["always", "topic_bound", "on_demand"]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "topicId": {
+          "type": ["string", "null"]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "memory_compact_topic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "topicId": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "memory_search": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "query"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1
+        },
+        "topicId": {
+          "type": ["string", "null"]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        }
+      }
+    }
+  }
+}

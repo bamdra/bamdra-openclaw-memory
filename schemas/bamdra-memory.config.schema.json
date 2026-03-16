@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/openclaw-enhanced/schemas/bamdra-memory.config.schema.json",
+  "title": "bamdra-memory configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "memoryV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "store",
+        "cache"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "store": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider",
+            "path"
+          ],
+          "properties": {
+            "provider": {
+              "const": "sqlite"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "cache": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider"
+          ],
+          "properties": {
+            "provider": {
+              "const": "memory"
+            },
+            "maxSessions": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxTopicsPerSession": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxFacts": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "topicRouting": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxRecentTopics": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "newTopicThreshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "switchTopicThreshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "contextAssembly": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "recentTurns": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "includeTopicShortSummary": {
+              "type": "boolean"
+            },
+            "includeOpenLoops": {
+              "type": "boolean"
+            },
+            "alwaysFactLimit": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "topicFactLimit": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "memoryV2"
+  ]
+}
