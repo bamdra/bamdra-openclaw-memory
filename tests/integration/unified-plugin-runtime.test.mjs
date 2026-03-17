@@ -29,8 +29,8 @@ test("unified bamdra-openclaw-memory plugin registers the memory slot and one ca
   });
 
   assert.equal(registeredContextEngines.has("bamdra-openclaw-memory"), true);
-  assert.equal(registeredTools.has("memory_save_fact"), true);
-  assert.equal(registeredTools.has("memory_search"), true);
+  assert.equal(registeredTools.has("bamdra_memory_save_fact"), true);
+  assert.equal(registeredTools.has("bamdra_memory_search"), true);
 
   const factory = registeredContextEngines.get("bamdra-openclaw-memory");
   assert.ok(factory);
@@ -41,7 +41,7 @@ test("unified bamdra-openclaw-memory plugin registers the memory slot and one ca
     cache: { provider: "memory", maxSessions: 16 },
   });
 
-  const saveFact = registeredTools.get("memory_save_fact");
+  const saveFact = registeredTools.get("bamdra_memory_save_fact");
   assert.ok(saveFact);
 
   await saveFact.execute("invocation-1", {
@@ -68,7 +68,12 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
   const homeDir = join(dir, "home");
   const openclawDir = join(homeDir, ".openclaw");
   const globalSkillsDir = join(openclawDir, "skills");
+  const extensionsDir = join(openclawDir, "extensions");
+  const memoryDir = join(openclawDir, "memory");
   const existingSkillDir = join(globalSkillsDir, "bamdra-memory-operator");
+  const userBindProfileSkillDir = join(globalSkillsDir, "bamdra-user-bind-profile");
+  const userBindAdminSkillDir = join(globalSkillsDir, "bamdra-user-bind-admin");
+  const vectorSkillDir = join(globalSkillsDir, "bamdra-memory-vector-operator");
   const configPath = join(openclawDir, "openclaw.json");
   const previousHome = process.env.HOME;
   const previousForceBootstrap = process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP;
@@ -120,13 +125,16 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
     assert.deepEqual(
       config.tools.allow.filter((item) => item.includes("memory")),
       [
-        "memory_list_topics",
-        "memory_switch_topic",
-        "memory_save_fact",
-        "memory_compact_topic",
-        "memory_search",
+        "bamdra_memory_list_topics",
+        "bamdra_memory_switch_topic",
+        "bamdra_memory_save_fact",
+        "bamdra_memory_compact_topic",
+        "bamdra_memory_search",
+        "bamdra_memory_vector_search",
       ],
     );
+    assert.equal(config.tools.allow.includes("bamdra_user_bind_get_my_profile"), true);
+    assert.equal(config.tools.allow.includes("bamdra_user_bind_admin_query"), true);
     assert.equal(config.plugins.slots.memory, "bamdra-openclaw-memory");
     assert.equal(config.plugins.slots.contextEngine, "bamdra-openclaw-memory");
     assert.equal(config.plugins.entries["bamdra-openclaw-memory"].enabled, true);
@@ -134,14 +142,36 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
       config.plugins.entries["bamdra-openclaw-memory"].config.store.path,
       "~/.openclaw/memory/main.sqlite",
     );
-    assert.deepEqual(config.agents.list[0].skills, ["bamdra-memory-operator"]);
-    assert.deepEqual(config.agents.list[1].skills, ["pdf-read", "bamdra-memory-operator"]);
+    assert.deepEqual(
+      config.agents.list[0].skills,
+      ["bamdra-memory-operator", "bamdra-user-bind-profile", "bamdra-memory-vector-operator", "bamdra-user-bind-admin"],
+    );
+    assert.deepEqual(
+      config.agents.list[1].skills,
+      ["pdf-read", "bamdra-memory-operator", "bamdra-user-bind-profile", "bamdra-memory-vector-operator"],
+    );
     assert.equal(
       config.skills.load.extraDirs.includes(join(homeDir, ".openclaw", "skills")),
       true,
     );
+    assert.equal(existsSync(memoryDir), true);
+    assert.equal(existsSync(join(extensionsDir, "bamdra-user-bind", "index.js")), true);
+    assert.equal(existsSync(join(extensionsDir, "bamdra-memory-vector", "index.js")), true);
+    assert.equal(config.plugins.entries["bamdra-memory-vector"].enabled, true);
+    assert.equal(config.plugins.entries["bamdra-memory-vector"].config.enabled, true);
+    assert.equal(
+      config.plugins.entries["bamdra-memory-vector"].config.privateMarkdownRoot,
+      "~/.openclaw/memory/vector/markdown/private",
+    );
+    assert.equal(
+      config.plugins.entries["bamdra-memory-vector"].config.sharedMarkdownRoot,
+      "~/.openclaw/memory/vector/markdown/shared",
+    );
     assert.equal(existsSync(join(existingSkillDir, "SKILL.md")), true);
     assert.equal(readFileSync(join(existingSkillDir, "SKILL.md"), "utf8"), "existing-skill\n");
+    assert.equal(existsSync(join(userBindProfileSkillDir, "SKILL.md")), true);
+    assert.equal(existsSync(join(userBindAdminSkillDir, "SKILL.md")), true);
+    assert.equal(existsSync(join(vectorSkillDir, "SKILL.md")), true);
   } finally {
     if (previousForceBootstrap === undefined) {
       delete process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP;

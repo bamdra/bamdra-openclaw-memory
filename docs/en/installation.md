@@ -40,13 +40,34 @@ If npm-based plugin install works in your OpenClaw environment, prefer that. If 
 
 ```bash
 openclaw plugins install @bamdra/bamdra-openclaw-memory
-openclaw plugins install @bamdra/bamdra-user-bind
-mkdir -p ~/.openclaw/memory
 ```
 
-Then bind the plugin in `~/.openclaw/openclaw.json` with `bamdra-openclaw-memory` as both the `memory` slot target and the compatibility `contextEngine` slot target.
+OpenClaw should then see `bamdra-openclaw-memory` as the active `memory` and `contextEngine` slot target. In current builds, the plugin bootstrap fills that in automatically when the runtime first loads.
 
-Install `bamdra-user-bind` alongside it. This is the required identity layer for real deployments because it maps channel-facing sender IDs into stable user identities and keeps memory scoped to the right person.
+All three public plugins can run independently. When `bamdra-openclaw-memory` is installed through npm, it auto-creates the local memory directory, auto-provisions `bamdra-user-bind`, stages `bamdra-memory-vector` locally, and materializes the bundled skills into `~/.openclaw/skills/`.
+
+Recommended vector best practice after install:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "bamdra-memory-vector": {
+        "enabled": true,
+        "config": {
+          "enabled": true,
+          "privateMarkdownRoot": "~/Documents/Obsidian/MyVault/openclaw/private",
+          "sharedMarkdownRoot": "~/Documents/Obsidian/MyVault/openclaw/shared",
+          "indexPath": "~/.openclaw/memory/vector/index.json",
+          "dimensions": 64
+        }
+      }
+    }
+  }
+}
+```
+
+That lets teams keep the index local while editing the Markdown knowledge base in Obsidian or another synced workspace.
 
 ## Install From Release
 
@@ -62,6 +83,7 @@ After unzip, you should have a folder that contains at least:
 
 - `bamdra-openclaw-memory/`
 - `bamdra-user-bind/`
+- `bamdra-memory-vector/`
 - `bamdra-openclaw-memory/skills/bamdra-memory-operator/SKILL.md`
 - `examples/configs/`
 - `INSTALL.md`
@@ -71,9 +93,15 @@ After unzip, you should have a folder that contains at least:
 ### Step 2: Copy the Plugins Into OpenClaw
 
 ```bash
-mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
+mkdir -p ~/.openclaw/extensions
 cp -R ./bamdra-openclaw-memory ~/.openclaw/extensions/
+```
+
+Optional standalone companions:
+
+```bash
 cp -R ./bamdra-user-bind ~/.openclaw/extensions/
+cp -R ./bamdra-memory-vector ~/.openclaw/extensions/
 ```
 
 ### Step 3: Use This SQLite Path
@@ -87,7 +115,6 @@ cp -R ./bamdra-user-bind ~/.openclaw/extensions/
 OpenClaw should load these directories directly:
 
 - `~/.openclaw/extensions/bamdra-openclaw-memory`
-- `~/.openclaw/extensions/bamdra-user-bind`
 
 ```text
 ~/.openclaw/openclaw.json
@@ -95,8 +122,13 @@ OpenClaw should load these directories directly:
 
 Merge in the plugin settings from the release bundle. Do not replace the whole `plugins` object if you already use other plugins.
 
-The release bundle and npm package also ship the recommended operator skill under `skills/bamdra-memory-operator/`.
-Current OpenClaw builds still require you to bind that skill explicitly in `agent.skills` if you want the behavior layer enabled. Shipping the skill inside the plugin bundle does not yet auto-attach it to agents.
+The release bundle and npm package also ship the bundled skills under `skills/`.
+Current bootstrap logic materializes them into `~/.openclaw/skills/` and attaches them automatically:
+
+- `bamdra-memory-operator` for all agents
+- `bamdra-user-bind-profile` for all agents
+- `bamdra-user-bind-admin` for the default admin agent, which is `main` unless configured otherwise
+- `bamdra-memory-vector-operator` for all agents when the vector plugin is present
 
 ### Most Common Setup: SQLite + Local Memory Cache
 

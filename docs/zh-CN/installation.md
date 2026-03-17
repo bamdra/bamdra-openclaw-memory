@@ -42,13 +42,34 @@
 
 ```bash
 openclaw plugins install @bamdra/bamdra-openclaw-memory
-openclaw plugins install @bamdra/bamdra-user-bind
-mkdir -p ~/.openclaw/memory
 ```
 
-然后在 `~/.openclaw/openclaw.json` 中把 `memory` 和 `contextEngine` 都绑定到 `bamdra-openclaw-memory`。
+随后 OpenClaw 应该会把 `bamdra-openclaw-memory` 视为当前的 `memory` 和 `contextEngine` 槽位目标。按照当前实现，这一步会在运行时首次加载插件时自动补齐。
 
-同时安装 `bamdra-user-bind`。这是实际部署中的必装身份层，用来把各个 channel 暴露出来的 sender id 映射成稳定的真实用户边界，避免记忆只按原始 id 分桶。
+这 3 个公开插件都可以独立运行。通过 npm 安装 `bamdra-openclaw-memory` 时，它会自动创建本地 memory 目录、自动把 `bamdra-user-bind` 补齐到 OpenClaw 扩展目录、把 `bamdra-memory-vector` 一起放到本地，并把随包 skill 物化到 `~/.openclaw/skills/`。
+
+安装后的向量最佳实践建议：
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "bamdra-memory-vector": {
+        "enabled": true,
+        "config": {
+          "enabled": true,
+          "privateMarkdownRoot": "~/Documents/Obsidian/MyVault/openclaw/private",
+          "sharedMarkdownRoot": "~/Documents/Obsidian/MyVault/openclaw/shared",
+          "indexPath": "~/.openclaw/memory/vector/index.json",
+          "dimensions": 64
+        }
+      }
+    }
+  }
+}
+```
+
+这种方式会把索引继续留在本地，同时允许你把 Markdown 知识库挂到 Obsidian 或其他同步工作区。
 
 ## 直接使用 Release 安装
 
@@ -64,6 +85,7 @@ unzip bamdra-openclaw-memory-release.zip
 
 - `bamdra-openclaw-memory/`
 - `bamdra-user-bind/`
+- `bamdra-memory-vector/`
 - `bamdra-openclaw-memory/skills/bamdra-memory-operator/SKILL.md`
 - `examples/configs/`
 - `INSTALL.md`
@@ -73,9 +95,15 @@ unzip bamdra-openclaw-memory-release.zip
 ### 第 2 步：把插件复制到 OpenClaw 目录
 
 ```bash
-mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
+mkdir -p ~/.openclaw/extensions
 cp -R ./bamdra-openclaw-memory ~/.openclaw/extensions/
+```
+
+如果你要独立使用配套插件，也可以额外复制：
+
+```bash
 cp -R ./bamdra-user-bind ~/.openclaw/extensions/
+cp -R ./bamdra-memory-vector ~/.openclaw/extensions/
 ```
 
 ### 第 3 步：SQLite 建议路径
@@ -89,7 +117,6 @@ cp -R ./bamdra-user-bind ~/.openclaw/extensions/
 OpenClaw 需要加载这个目录：
 
 - `~/.openclaw/extensions/bamdra-openclaw-memory`
-- `~/.openclaw/extensions/bamdra-user-bind`
 
 ```text
 ~/.openclaw/openclaw.json
@@ -147,8 +174,13 @@ OpenClaw 需要加载这个目录：
 
 显式记忆工具已经内置在 `bamdra-memory` 这个统一插件里，不需要再额外安装 tools 插件。
 
-release 压缩包和 npm 包也会一并携带推荐的 operator skill，路径是 `skills/bamdra-memory-operator/`。
-但按照当前 OpenClaw 的实际行为，如果你希望这个行为层真的生效，仍然需要在 `openclaw.json` 里把它显式挂到对应 agent 的 `skills` 数组中。插件可以随包分发 skill，但运行时暂时不会自动写入 `agent.skills`。
+release 压缩包和 npm 包也会一并携带 `skills/` 目录下的行为层 skill。
+当前 bootstrap 会自动把它们复制到 `~/.openclaw/skills/` 并挂到 agent 上：
+
+- `bamdra-memory-operator`：默认挂到所有 agent
+- `bamdra-user-bind-profile`：默认挂到所有 agent
+- `bamdra-user-bind-admin`：默认挂到管理员 agent，默认是 `main`
+- `bamdra-memory-vector-operator`：当向量插件存在时默认挂到所有 agent
 
 ### 第 5 步：重启 OpenClaw
 

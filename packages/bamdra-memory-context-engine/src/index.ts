@@ -11,6 +11,7 @@ import type {
   ExtractedFactCandidate,
   MessageRecord,
   MemoryV2Config,
+  PersistentStore,
   SessionStateRecord,
   TopicMembershipRecord,
   TopicRecord,
@@ -151,7 +152,9 @@ export function createContextEngineMemoryV2Plugin(
         registerHook(
           ["message:received", "message:preprocessed"],
           async (event: unknown) => {
+            await ensureResolvedIdentity(event);
             const sessionId = getSessionIdFromHookContext(event);
+            await backfillResolvedIdentity(store, sessionId);
             const text = getTextFromHookContext(event);
             logMemoryEvent("hook-ingest-received", {
               hasSessionId: Boolean(sessionId),
@@ -181,7 +184,9 @@ export function createContextEngineMemoryV2Plugin(
 
       if (registerTypedHook) {
         registerTypedHook("before_prompt_build", async (event: unknown, hookContext: unknown) => {
+          await ensureResolvedIdentity(hookContext);
           const sessionId = getSessionIdFromHookContext(hookContext);
+          await backfillResolvedIdentity(store, sessionId);
           const text = getTextFromHookContext(event);
           logMemoryEvent("hook-assemble-received", {
             hasSessionId: Boolean(sessionId),
@@ -203,13 +208,26 @@ export function createContextEngineMemoryV2Plugin(
           }
 
           const assembled = await plugin.assembleContext(sessionId);
+          const knowledgeRecall = text && shouldPreferLocalKnowledgeFirst(text)
+            ? await plugin.searchMemory({
+              sessionId,
+              query: text,
+              limit: 3,
+            })
+            : null;
+          const assembledWithRecall = knowledgeRecall != null
+            ? mergeLocalKnowledgeRecall(assembled, knowledgeRecall)
+            : assembled;
           logMemoryEvent("hook-assemble-complete", {
             sessionId,
-            topicId: assembled.topicId,
-            sections: assembled.sections.length,
+            topicId: assembledWithRecall.topicId,
+            sections: assembledWithRecall.sections.length,
+            localKnowledgeHits: knowledgeRecall == null
+              ? 0
+              : knowledgeRecall.vectors.length + knowledgeRecall.facts.length + knowledgeRecall.topics.length,
           });
 
-          return buildBeforePromptBuildResult(assembled);
+          return buildBeforePromptBuildResult(assembledWithRecall);
         });
       } else {
         logMemoryEvent("register-typed-hooks-skipped", { reason: "typed hook registrar unavailable" });
@@ -530,6 +548,7 @@ export function createContextEngineMemoryV2Plugin(
 
       const extractedFacts = factExtractor.extract({
         sessionId,
+        userId,
         text,
         topic:
           decision.action === "spawn"
@@ -667,12 +686,50 @@ function getResolvedIdentity(sessionId: string): Record<string, unknown> | null 
   const api = (globalThis as Record<string, unknown>)[USER_BIND_GLOBAL_KEY] as
     | {
       getIdentityForSession?(sessionId: string): Record<string, unknown> | null;
+      resolveIdentity?(context: unknown): Promise<Record<string, unknown> | null>;
     }
     | undefined;
   if (!api?.getIdentityForSession) {
     return null;
   }
   return api.getIdentityForSession(sessionId);
+}
+
+async function ensureResolvedIdentity(context: unknown): Promise<void> {
+  const api = (globalThis as Record<string, unknown>)[USER_BIND_GLOBAL_KEY] as
+    | {
+      resolveIdentity?(context: unknown): Promise<Record<string, unknown> | null>;
+    }
+    | undefined;
+  if (!api?.resolveIdentity) {
+    return;
+  }
+  try {
+    await api.resolveIdentity(context);
+  } catch (error) {
+    logMemoryEvent("identity-resolve-failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function backfillResolvedIdentity(
+  store: PersistentStore,
+  sessionId: string | null,
+): Promise<void> {
+  if (!sessionId || typeof store.backfillSessionIdentity !== "function") {
+    return;
+  }
+  const userId = getResolvedUserId(sessionId);
+  if (!userId) {
+    return;
+  }
+  await store.backfillSessionIdentity({
+    sessionId,
+    userId,
+    channelType: getResolvedChannelType(sessionId),
+    senderOpenId: getResolvedSenderOpenId(sessionId),
+  });
 }
 
 function getResolvedUserId(sessionId: string): string | null {
@@ -1180,5 +1237,64 @@ function buildBeforePromptBuildResult(assembled: AssembledContext): {
 
   return {
     prependSystemContext: text,
+  };
+}
+
+function shouldPreferLocalKnowledgeFirst(text: string): boolean {
+  const normalized = text.toLowerCase();
+  const signals = [
+    "知识库",
+    "文档",
+    "说明",
+    "规范",
+    "笔记",
+    "想法",
+    "本地",
+    "查一下文档",
+    "查下文档",
+    "知识",
+    "changelog",
+    "readme",
+    "docs",
+    "notes",
+    "ideas",
+    ".md",
+    ".pdf",
+    ".docx",
+    "sop",
+  ];
+  return signals.some((signal) => normalized.includes(signal));
+}
+
+function mergeLocalKnowledgeRecall(
+  assembled: AssembledContext,
+  search: MemorySearchResult,
+): AssembledContext {
+  const vectorLines = search.vectors
+    .slice(0, 3)
+    .map((item) => `- [vector] ${item.title} (${item.sourcePath}): ${item.text.slice(0, 220)}`);
+  const factLines = search.facts
+    .slice(0, 2)
+    .map((item) => `- [fact] ${item.fact.key}: ${item.fact.value}`);
+  const topicLines = search.topics
+    .slice(0, 2)
+    .map((item) => `- [topic] ${item.topic.title}: ${item.topic.summaryShort}`);
+  const lines = [...vectorLines, ...factLines, ...topicLines];
+  if (lines.length === 0) {
+    return assembled;
+  }
+
+  const content = [
+    "Prefer answering from local memory and knowledge before using web search.",
+    ...lines,
+  ].join("\n");
+
+  return {
+    ...assembled,
+    text: `[facts]\n${content}\n\n${assembled.text}`.trim(),
+    sections: [
+      { kind: "facts", content },
+      ...assembled.sections,
+    ],
   };
 }

@@ -6,6 +6,7 @@ import type {
 
 export interface FactExtractionInput {
   sessionId: string;
+  userId?: string | null;
   text: string;
   topic: TopicRecord | null;
 }
@@ -20,6 +21,7 @@ export class FactExtractor {
     candidates.push(...extractAccountLikeFacts(input));
     candidates.push(...extractConstraintFacts(input));
     candidates.push(...extractPreferenceFacts(input));
+    candidates.push(...extractPersonalWorkFacts(input));
 
     return dedupeCandidates(candidates);
   }
@@ -56,7 +58,7 @@ function extractAccountLikeFacts(
     return candidates;
   }
 
-  const scope = input.topic ? `topic:${input.topic.id}` : "shared";
+  const scope = input.topic ? `topic:${input.topic.id}` : fallbackSharedScope(input);
   const labels = input.topic?.labels ?? [];
 
   if (/(appid|appsecret|token|apikey|api key)/i.test(input.text)) {
@@ -102,7 +104,7 @@ function extractConstraintFacts(
       value: abbreviate(input.text),
       sensitivity: "normal",
       recallPolicy: "topic_bound",
-      scope: input.topic ? `topic:${input.topic.id}` : "shared",
+      scope: input.topic ? `topic:${input.topic.id}` : fallbackSharedScope(input),
       confidence: 0.82,
       tags: [...(input.topic?.labels ?? []), "constraint"],
     },
@@ -123,11 +125,58 @@ function extractPreferenceFacts(
       value: abbreviate(input.text),
       sensitivity: "normal",
       recallPolicy: "always",
-      scope: "shared",
+      scope: choosePersonalOrSharedScope(input),
       confidence: 0.76,
       tags: [...(input.topic?.labels ?? []), "preference"],
     },
   ];
+}
+
+function extractPersonalWorkFacts(
+  input: FactExtractionInput,
+): ExtractedFactCandidate[] {
+  const explicitCurrentWork =
+    input.text.match(/(?:记住[:：]?\s*)?我(?:现在)?主要在做(.+?)[。.!！\n]?$/)
+    ?? input.text.match(/(?:记住[:：]?\s*)?我最近主要在做(.+?)[。.!！\n]?$/)
+    ?? input.text.match(/(?:记住[:：]?\s*)?我当前主要在做(.+?)[。.!！\n]?$/);
+  if (!explicitCurrentWork) {
+    return [];
+  }
+  const value = explicitCurrentWork[1]?.trim();
+  if (!value) {
+    return [];
+  }
+
+  return [
+    {
+      category: "project",
+      key: "当前主要工作",
+      value,
+      sensitivity: "normal",
+      recallPolicy: "always",
+      scope: choosePersonalOrSharedScope(input),
+      confidence: 0.92,
+      tags: [...(input.topic?.labels ?? []), "project", "current-focus"],
+    },
+  ];
+}
+
+function choosePersonalOrSharedScope(input: FactExtractionInput): string {
+  if (shouldForceShared(input.text)) {
+    return "shared";
+  }
+  if (input.userId) {
+    return `user:${input.userId}`;
+  }
+  return fallbackSharedScope(input);
+}
+
+function fallbackSharedScope(input: FactExtractionInput): string {
+  return input.topic ? `topic:${input.topic.id}` : "shared";
+}
+
+function shouldForceShared(text: string): boolean {
+  return /(共享|shared|公共|团队|所有人|everyone|team|public)/i.test(text);
 }
 
 function dedupeCandidates(

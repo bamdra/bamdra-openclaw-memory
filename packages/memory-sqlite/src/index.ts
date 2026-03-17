@@ -99,6 +99,47 @@ export class MemorySqliteStore implements PersistentStore {
       );
   }
 
+  async backfillSessionIdentity(args: {
+    sessionId: string;
+    userId: string;
+    channelType?: string | null;
+    senderOpenId?: string | null;
+  }): Promise<void> {
+    this.db.exec("BEGIN");
+    try {
+      this.db
+        .prepare(
+          `UPDATE ${TABLES.messages}
+           SET user_id = COALESCE(user_id, ?),
+               channel_type = COALESCE(channel_type, ?),
+               sender_open_id = COALESCE(sender_open_id, ?)
+           WHERE session_id = ?`,
+        )
+        .run(args.userId, args.channelType ?? null, args.senderOpenId ?? null, args.sessionId);
+
+      this.db
+        .prepare(
+          `UPDATE ${TABLES.topics}
+           SET user_id = COALESCE(user_id, ?)
+           WHERE session_id = ?`,
+        )
+        .run(args.userId, args.sessionId);
+
+      this.db
+        .prepare(
+          `UPDATE ${TABLES.sessionState}
+           SET user_id = COALESCE(user_id, ?)
+           WHERE session_id = ?`,
+        )
+        .run(args.userId, args.sessionId);
+
+      this.db.exec("COMMIT");
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   async getSessionState(sessionId: string): Promise<SessionStateRecord | null> {
     const row = this.db
       .prepare(

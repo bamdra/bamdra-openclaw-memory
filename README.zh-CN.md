@@ -1,291 +1,122 @@
 # bamdra-openclaw-memory
 
-让单一 OpenClaw 会话拥有近乎无限的连续沟通能力：不轻易失忆，不怕话题切换，也不让 prompt 无限制膨胀。
+面向 OpenClaw 的 continuity-first 主记忆运行时。
 
-面向 OpenClaw 的话题感知记忆、受控上下文装配与持久化事实召回方案。
-
-`bamdra-openclaw-memory` 让一个会话可以在多条 topic 之间自然切换，在被打断后安静地恢复正确上下文，并通过围绕活跃分支装配 prompt 来控制 token 成本，而不是把整段历史无限堆进去。
-
-[English README](./README.md) | [English Docs](./docs/en/overview.md) | [中文文档目录](./docs/zh-CN/overview.md)
-
-## 它实际带来的感觉
-
-没有 `bamdra-openclaw-memory` 时，长会话通常会出现这些问题：
-
-- 本来在聊旅游，后来岔去聊吃什么，又被工作消息打断
-- 处理完工作后，再回到旅游话题时，上下文已经散了
-- 原本应该顺手接上的内容，结果又得重讲一遍
-
-有了 `bamdra-openclaw-memory` 之后，更像是在用一个带标签页的工作笔记本：
-
-- 不同线程会在后台自动分开
-- 重要事实可以主动钉住，而不是赌模型能一直记住
-- 回到之前的话题时，衔接会自然很多，而不是重放整段聊天
-
-## 一个简单效果示例
-
-你和 OpenClaw 这样对话：
-
-1. “下个月想在国内找个地方短途旅游。”
-2. “如果去成都，先吃什么比较值？”
-3. “我刚收到一个工作邮件，帮我写个礼貌回复，说我明天上午发方案过去。”
-4. “继续说旅游。如果只有一个周末，成都和杭州选哪个更合适？”
-5. “请记住，我订酒店更偏好离地铁站近一点。”
-
-理想效果是：
-
-- 旅游线索在处理完工作邮件后还能自然接上
-- “吃什么”这条支线仍然和旅游主线保持关联
-- 工作邮件不会污染后面的旅游建议
-- 整个过程对用户来说是自然连续的，不需要系统解释内部动作
-- 住酒店靠近地铁站这个偏好，后面可以直接用上
-
-## 它是什么
-
-`bamdra-openclaw-memory` 是 Bamdra OpenClaw 记忆套件中的主插件，它把“记忆”从单纯的提示词约定，升级为结构化的运行时能力。
-
-它带来的是：
-
-- 面向话题的会话记忆
-- 面向当前任务的短上下文
-- 针对路径、约束、决策、引用信息的持久化召回
-- 必要时可由 agent 主动调用的显式记忆工具
-- 一个真正统一的插件安装路径，不再要求分别部署 engine 和 tools
-- 与 `bamdra-user-bind`、`bamdra-memory-vector` 的扩展联动入口
-
-## 为什么会需要它
-
-一般会在这些场景下安装它：
-
-- 会话很长，而且经常被别的话题或任务打断
-- 不想重复告诉模型同样的路径、规则和偏好
-- 希望 assistant 能自然接回之前的话题
-- 希望同一 agent、同一会话在重启后仍能恢复有效上下文
-
-## 设计目标
-
-- 控制提示词体积
-- 在 topic 漂移后仍能保留关键事实
-- 支持单 session 内的非线性对话
-- 支持同一会话内的隐式 topic 恢复与显式 topic 控制
-- 保持 agent 之间、用户之间的记忆隔离
-- 默认适配轻量本地部署
-- 让 OpenClaw 侧插件保持轻薄
-
-## 隔离边界
-
-`bamdra-openclaw-memory` 的设计前提不是“全局共享记忆”，而是“在正确的会话边界里提供连续性”。
-
-- 不同 agent 的记忆默认隔离
-- 不同用户/会话的记忆默认隔离
-- topic 切换发生在单个会话内部，不用于跨用户或跨 agent 共享隐私信息
-- 显式保存的事实也必须服从运行时的会话与 agent 边界
-
-对外发布时，应该把它理解成“同一会话连续性增强”，而不是“全局知识库”。
-
-## 核心能力
-
-- `隐式连续性恢复`
-  在后台自动把不同话题分开，并在需要时恢复之前的线索。
-- `上下文装配`
-  从最近消息、摘要、open loops 和 pinned facts 中拼装当前 prompt 上下文。
-- `持久化事实召回`
-  以 category、sensitivity、scope、recall policy 等维度管理事实。
-- `显式运维工具`
-  支持 `memory_list_topics`、`memory_switch_topic`、`memory_save_fact`、`memory_compact_topic`、`memory_search`。
-- `重启恢复`
-  进程重启后可从 SQLite 恢复同一 agent / 同一会话的活跃状态。
-- `身份感知记忆`
-  当安装 `bamdra-user-bind` 后，从 session-first 升级为 user-aware 边界。
-- `可选语义召回`
-  探测到 `bamdra-memory-vector` 后，自动把纯文本检索升级为混合召回。
-
-## 使用前后区别
-
-### 没有它时
-
-- “我们刚聊过这个” 往往意味着重新翻聊天记录
-- 重要事实需要反复强调
-- topic 切换之后容易把旧内容带进当前 prompt
-
-### 有了它之后
-
-- 旧分支更容易找回
-- 稳定事实可以只保存一次
-- 当前上下文会围绕活跃分支重新装配
-
-## 仓库结构
-
-- `docs/`
-  产品文档、架构说明、配置与接入文档。
-- `packages/`
-  存储、缓存、路由、装配、提取、摘要刷新等通用模块。
-- `plugins/`
-  面向 OpenClaw 的插件适配层。
-- `examples/`
-  可直接合并使用的配置覆盖示例。
-- `schemas/`
-  配置与工具契约的 JSON Schema。
-- `skills/`
-  面向 operator 的技能说明与可选的行为增强层。
-- `tests/`
-  覆盖路由、工具、搜索、上下文装配的集成测试。
-
-## 安装
-
-### 前置条件
-
-- OpenClaw
-- Node.js 22.x 或更新版本
-- 可写入的 `~/.openclaw/` 目录
-
-## 通过 npm 或 OpenClaw CLI 安装
-
-如果你的 OpenClaw 环境支持从 npm 安装插件，这条路径最简单。
+一键安装：
 
 ```bash
 openclaw plugins install @bamdra/bamdra-openclaw-memory
-openclaw plugins install @bamdra/bamdra-user-bind
-mkdir -p ~/.openclaw/memory
 ```
 
-然后在 `~/.openclaw/openclaw.json` 中把 `memory` 和 `contextEngine` 都绑定到 `bamdra-openclaw-memory`。
+这一条命令现在会把整套 Bamdra 记忆栈一起准备好：
 
-`bamdra-user-bind` 应该被视为生产使用时的必装身份层。它可以避免记忆仅按原始 channel sender id 分桶，能让同一真实用户在跨 session、跨 channel 时拥有更稳定的连续性，尤其适合飞书这类需要先做身份映射的场景。
+- `bamdra-openclaw-memory`
+- `bamdra-user-bind`
+- `bamdra-memory-vector`
 
-## 通过 Release 包手动安装
+[English README](./README.md)
 
-如果你更偏好手动安装或离线路径，可以走 release 包。
+## 它是什么
 
-1. 下载最新 release 压缩包
-2. 解压
-3. 把下面这个目录拷贝到 `~/.openclaw/extensions/`：
-   - `bamdra-openclaw-memory`
-   - `bamdra-user-bind`
-4. 准备 SQLite 目录：
+`bamdra-openclaw-memory` 是 Bamdra 套件中的主运行时插件。
 
-```bash
-mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
+它让 OpenClaw 能够：
+
+- 保持正确的话题分支
+- 保存长期事实
+- 生成紧凑上下文
+- 在中断和重启后继续恢复
+- 和真实身份层、真实本地知识库层协同工作
+
+## 为什么团队会装它
+
+没有 continuity 运行时的时候，长会话很快就会散：
+
+- 用户不断重复背景
+- 中断会破坏连续性
+- 稳定决策沉没进聊天记录
+- 本地文档和笔记无法进入召回链路
+
+有了这套系统后，智能体会随着用户一起进化，因为画像、记忆和知识都变成了可持续积累的资产。
+
+## 为什么说这套体系已经完整
+
+### `bamdra-user-bind`
+
+负责稳定用户边界和“活的画像层”。
+
+它会承担大部分 per-user `USER.md` 想做的事情：
+
+- 应该怎么称呼
+- 时区
+- 语气偏好
+- 角色与协作方式
+- 长期用户备注
+
+### `bamdra-memory-vector`
+
+负责把本地 Markdown 变成真正的知识库。
+
+它会索引：
+
+- `knowledge/`
+- `docs/`
+- `notes/`
+- `ideas/`
+
+并尽量让本地知识召回优先于不必要的 web search。
+
+## 架构图
+
+```mermaid
+flowchart LR
+  user["用户"] --> bind["bamdra-user-bind"]
+  bind --> memory["bamdra-openclaw-memory"]
+  memory --> vector["bamdra-memory-vector"]
+  bind --> profile["Profile SQLite + Markdown 镜像"]
+  memory --> main["主 SQLite 记忆库"]
+  vector --> kb["私有 / 共享 Markdown 知识库"]
+  memory --> prompt["紧凑上下文"]
+  prompt --> agent["OpenClaw agent"]
 ```
 
-5. 把以下任一示例配置合并进 `~/.openclaw/openclaw.json`：
-   - [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-   - [openclaw.plugins.bamdra-memory.suite.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
-6. 重启 OpenClaw
+## 最佳实践
 
-OpenClaw 需要加载的插件路径是：
+推荐这样使用：
 
-- `~/.openclaw/extensions/bamdra-openclaw-memory`
-- `~/.openclaw/extensions/bamdra-user-bind`
+- 让 `bamdra-openclaw-memory` 占据 `memory` 和 `contextEngine` 槽位
+- 让 `bamdra-user-bind` 负责身份与个性化
+- 让 `bamdra-memory-vector` 负责本地 Markdown 知识与语义召回
 
-更完整的 release 安装说明见：
+推荐的向量根目录：
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "bamdra-memory-vector": {
+        "enabled": true,
+        "config": {
+          "enabled": true,
+          "privateMarkdownRoot": "~/Documents/Obsidian/MyVault/openclaw/private",
+          "sharedMarkdownRoot": "~/Documents/Obsidian/MyVault/openclaw/shared",
+          "indexPath": "~/.openclaw/memory/vector/index.json"
+        }
+      }
+    }
+  }
+}
+```
+
+这样你会同时得到：
+
+- 本地优先的连续性运行时
+- 可持续维护的用户画像
+- 真正可编辑的私有与共享知识库
+
+## 继续阅读
 
 - [安装指南](./docs/zh-CN/installation.md)
-- [提示词与最佳实践](./docs/zh-CN/prompting.md)
-
-## 开发者从源码构建
-
-如果你要从源码构建：
-
-```bash
-git clone git@github.com:bamdra/bamdra-openclaw-memory.git
-cd bamdra-openclaw-memory
-pnpm install
-pnpm build
-pnpm test
-mkdir -p ~/.openclaw/memory
-```
-
-然后把构建后的插件目录：
-
-- `./plugins/bamdra-memory`
-
-复制到：
-
-- `~/.openclaw/extensions/bamdra-openclaw-memory`
-
-## 快速效果演示
-
-如果安装正常，下面这种对话应该会显得比较自然：
-
-1. “下个月想在中国找个地方过周末。”
-2. “如果去成都，先吃什么比较值？”
-3. “我刚收到一个工作邮件，帮我礼貌回复一下。”
-4. “继续说旅游。如果只有一个周末，成都和杭州该选哪个？”
-5. “请记住，我订酒店更偏好靠近地铁站。”
-6. “那这趟行程住在哪一片会更方便？”
-
-你应该感受到的是：
-
-- 工作插曲之后，旅游线还能自然接上
-- assistant 不会向用户汇报内部记忆机制
-- 保存过的地铁站偏好能在后面直接被用上
-
-## 为什么不只靠摘要？
-
-- 只靠摘要，很容易在话题漂移后把重点覆盖掉
-- 稳定事实不应该只靠某一段总结碰运气
-- 长会话里，“连续性”和“事实召回”最好分开处理
-
-## 常见问题
-
-### 一定要用 Redis 吗？
-
-不需要。公开版本已经移除了 Redis 依赖，默认就是 SQLite 加进程内缓存。
-
-### 需要手动切换 topic 吗？
-
-通常不需要。大部分上下文恢复都应该在后台无感完成，显式工具主要留给 operator 和特殊场景。
-
-### 重启后还能接上吗？
-
-可以，但这里说的是同一 agent、同一会话边界内的恢复。`bamdra-openclaw-memory` 并不以跨用户、跨 agent 共享私有记忆为目标。
-
-## 源码模式下的验证
-
-如果你是从源码运行，可以用下面命令验证：
-
-```bash
-pnpm test
-```
-
-## 发布前验证
-
-这次开源前的修复已经覆盖了下面这些关键点：
-
-- `memory` slot 绑定到 `bamdra-openclaw-memory`
-- 兼容性 `contextEngine` slot 同时绑定到 `bamdra-openclaw-memory`
-- 显式屏蔽内置 `memory-core`
-- 单插件内部同时完成 context engine 和 `memory_*` 工具注册
-- SQLite 写入和重启后恢复链路已实测通过
-
-## 文档
-
-### 英文文档
-
-- [Product Overview](./docs/en/overview.md)
-- [Installation Guide](./docs/en/installation.md)
-- [Integration Guide](./docs/en/integration.md)
-- [Usage Guide](./docs/en/usage.md)
-- [Prompting Guide](./docs/en/prompting.md)
-
-### 中文文档
-
-- [产品概览](./docs/zh-CN/overview.md)
-- [安装指南](./docs/zh-CN/installation.md)
-- [接入指南](./docs/zh-CN/integration.md)
-- [使用指南](./docs/zh-CN/usage.md)
-- [提示词与文件写法](./docs/zh-CN/prompting.md)
-
-### 技术参考
-
-- [Architecture](./docs/architecture.md)
-- [Data Model](./docs/data-model.md)
-- [Configuration](./docs/configuration.md)
-- [Runtime Integration Notes](./docs/openclaw-runtime-integration.md)
-
-## 当前状态
-
-这套 bundle 已具备本地 OpenClaw 部署和联调使用条件，workspace 的构建和集成测试已经打通。
-
-后续长期工作重点主要是：等待并对齐 OpenClaw 上游稳定后的 context-engine SDK 形态，再把当前运行时适配层替换成正式接口。
+- [提示词指南](./docs/zh-CN/prompting.md)
+- [配置样例](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
+- [GitHub 首页](https://github.com/bamdra)

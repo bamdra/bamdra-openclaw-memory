@@ -59,6 +59,8 @@
         "config": {
           "enabled": false,
           "markdownRoot": "~/.openclaw/memory/vector/markdown",
+          "privateMarkdownRoot": "~/.openclaw/memory/vector/markdown/private",
+          "sharedMarkdownRoot": "~/.openclaw/memory/vector/markdown/shared",
           "indexPath": "~/.openclaw/memory/vector/index.json",
           "dimensions": 64
         }

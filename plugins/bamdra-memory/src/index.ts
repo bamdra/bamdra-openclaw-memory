@@ -3,6 +3,7 @@ import {
   type ContextEngineMemoryV2Plugin,
 } from "@openclaw-enhanced/bamdra-memory-context-engine";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import type {
   FactCategory,
   FactRecallPolicy,
@@ -12,7 +13,7 @@ import type {
   TopicRecord,
 } from "@openclaw-enhanced/memory-core";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 
 const PLUGIN_ID = "bamdra-openclaw-memory";
 const ENGINE_GLOBAL_KEY = "__OPENCLAW_BAMDRA_MEMORY_CONTEXT_ENGINE__";
@@ -20,15 +21,45 @@ const TOOLS_REGISTERED_KEY = Symbol.for("bamdra-openclaw-memory.tools-registered
 const ENGINE_REGISTERED_KEY = Symbol.for("bamdra-openclaw-memory.context-engine-registered");
 const BOOTSTRAP_STARTED_KEY = Symbol.for("bamdra-openclaw-memory.host-bootstrap-started");
 const SKILL_ID = "bamdra-memory-operator";
+const USER_BIND_PROFILE_SKILL_ID = "bamdra-user-bind-profile";
+const USER_BIND_ADMIN_SKILL_ID = "bamdra-user-bind-admin";
+const VECTOR_SKILL_ID = "bamdra-memory-vector-operator";
 const REQUIRED_TOOL_NAMES = [
+  "bamdra_memory_list_topics",
+  "bamdra_memory_switch_topic",
+  "bamdra_memory_save_fact",
+  "bamdra_memory_compact_topic",
+  "bamdra_memory_search",
+  "bamdra_user_bind_get_my_profile",
+  "bamdra_user_bind_update_my_profile",
+  "bamdra_user_bind_refresh_my_binding",
+  "bamdra_user_bind_admin_query",
+  "bamdra_user_bind_admin_edit",
+  "bamdra_user_bind_admin_merge",
+  "bamdra_user_bind_admin_list_issues",
+  "bamdra_user_bind_admin_sync",
+  "bamdra_memory_vector_search",
+] as const;
+const LEGACY_TOOL_ALIASES = [
   "memory_list_topics",
   "memory_switch_topic",
   "memory_save_fact",
   "memory_compact_topic",
   "memory_search",
+  "user_bind_get_my_profile",
+  "user_bind_update_my_profile",
+  "user_bind_refresh_my_binding",
+  "user_bind_admin_query",
+  "user_bind_admin_edit",
+  "user_bind_admin_merge",
+  "user_bind_admin_list_issues",
+  "user_bind_admin_sync",
+  "memory_vector_search",
 ] as const;
 const REQUIRED_PLUGIN_IDS = ["bamdra-user-bind"] as const;
 const OPTIONAL_PLUGIN_IDS = ["bamdra-memory-vector"] as const;
+const AUTO_PROVISION_PLUGIN_IDS = [...REQUIRED_PLUGIN_IDS, ...OPTIONAL_PLUGIN_IDS] as const;
+const runtimeRequire = createRequire(__filename);
 
 function logUnifiedMemoryEvent(event: string, details: Record<string, unknown> = {}): void {
   try {
@@ -178,7 +209,7 @@ interface MemorySearchArgs {
 function registerUnifiedTools(api: UnifiedPluginApi, engine: ContextEngineMemoryV2Plugin): void {
   const definitions = [
     createToolDefinitions<MemoryListTopicsArgs>({
-      name: "memory_list_topics",
+      name: "bamdra_memory_list_topics",
       description: "List known topics for a session",
       parameters: {
         type: "object",
@@ -193,7 +224,7 @@ function registerUnifiedTools(api: UnifiedPluginApi, engine: ContextEngineMemory
       },
     }),
     createToolDefinitions<MemorySwitchTopicArgs>({
-      name: "memory_switch_topic",
+      name: "bamdra_memory_switch_topic",
       description: "Switch the active topic for a session",
       parameters: {
         type: "object",
@@ -209,7 +240,7 @@ function registerUnifiedTools(api: UnifiedPluginApi, engine: ContextEngineMemory
       },
     }),
     createToolDefinitions<MemorySaveFactArgs>({
-      name: "memory_save_fact",
+      name: "bamdra_memory_save_fact",
       description: "Persist a pinned memory fact for the current or selected topic",
       parameters: {
         type: "object",
@@ -235,7 +266,7 @@ function registerUnifiedTools(api: UnifiedPluginApi, engine: ContextEngineMemory
       },
     }),
     createToolDefinitions<MemoryCompactTopicArgs>({
-      name: "memory_compact_topic",
+      name: "bamdra_memory_compact_topic",
       description: "Force refresh the summary for the current or selected topic",
       parameters: {
         type: "object",
@@ -251,8 +282,8 @@ function registerUnifiedTools(api: UnifiedPluginApi, engine: ContextEngineMemory
       },
     }),
     createToolDefinitions<MemorySearchArgs>({
-      name: "memory_search",
-      description: "Search topics and durable facts for a session",
+      name: "bamdra_memory_search",
+      description: "Search local topics, durable facts, and vector-backed knowledge first before using external web search",
       parameters: {
         type: "object",
         additionalProperties: false,
@@ -324,6 +355,7 @@ function asTextResult(
 function bootstrapOpenClawHost(): void {
   const openclawHome = resolve(homedir(), ".openclaw");
   const extensionRoot = join(openclawHome, "extensions");
+  const memoryRoot = join(openclawHome, "memory");
   const pluginRuntimeRoot = resolve(dirname(__dirname));
   const configPath = join(openclawHome, "openclaw.json");
   const globalSkillsDir = join(openclawHome, "skills");
@@ -344,7 +376,13 @@ function bootstrapOpenClawHost(): void {
     return;
   }
 
+  mkdirSync(openclawHome, { recursive: true });
+  mkdirSync(extensionRoot, { recursive: true });
+  mkdirSync(memoryRoot, { recursive: true });
+
+  materializeBundledDependencyPlugins(pluginRuntimeRoot, extensionRoot);
   materializeBundledSkill(bundledSkillDir, targetSkillDir);
+  materializeBundledDependencySkills(pluginRuntimeRoot, globalSkillsDir);
 
   const original = readFileSync(configPath, "utf8");
   const config = JSON.parse(original) as Record<string, unknown>;
@@ -361,6 +399,87 @@ function bootstrapOpenClawHost(): void {
     targetSkillDir,
     pluginId: PLUGIN_ID,
   });
+}
+
+function materializeBundledDependencyPlugins(pluginRuntimeRoot: string, extensionRoot: string): void {
+  for (const pluginId of AUTO_PROVISION_PLUGIN_IDS) {
+    const targetDir = join(extensionRoot, pluginId);
+    if (existsSync(targetDir)) {
+      continue;
+    }
+
+    const sourceDir = resolveBundledDependencySource(pluginRuntimeRoot, pluginId);
+    if (!sourceDir) {
+      logUnifiedMemoryEvent("dependency-plugin-copy-skipped", {
+        pluginId,
+        reason: "source-not-found",
+      });
+      continue;
+    }
+
+    mkdirSync(dirname(targetDir), { recursive: true });
+    cpSync(sourceDir, targetDir, { recursive: true });
+    logUnifiedMemoryEvent("dependency-plugin-copied", {
+      pluginId,
+      sourceDir,
+      targetDir,
+    });
+  }
+}
+
+function materializeBundledDependencySkills(pluginRuntimeRoot: string, globalSkillsDir: string): void {
+  for (const pluginId of AUTO_PROVISION_PLUGIN_IDS) {
+    const sourceDir = resolveBundledDependencySource(pluginRuntimeRoot, pluginId);
+    if (!sourceDir) {
+      continue;
+    }
+    const packageRoot = sourceDir.endsWith(`${sep}dist`) ? dirname(sourceDir) : sourceDir;
+    const skillsRoot = join(packageRoot, "skills");
+    if (!existsSync(skillsRoot)) {
+      continue;
+    }
+    for (const skillId of dependencySkillIds(pluginId)) {
+      const sourceSkillDir = join(skillsRoot, skillId);
+      const targetSkillDir = join(globalSkillsDir, skillId);
+      materializeBundledSkill(sourceSkillDir, targetSkillDir);
+    }
+  }
+}
+
+function resolveBundledDependencySource(pluginRuntimeRoot: string, pluginId: string): string | null {
+  const packageNameByPluginId: Record<string, string> = {
+    "bamdra-user-bind": "@bamdra/bamdra-user-bind",
+    "bamdra-memory-vector": "@bamdra/bamdra-memory-vector",
+  };
+
+  const candidateRoots: string[] = [];
+  const packageName = packageNameByPluginId[pluginId];
+
+  if (packageName) {
+    try {
+      const entryPath = runtimeRequire.resolve(packageName);
+      candidateRoots.push(dirname(dirname(entryPath)));
+      candidateRoots.push(dirname(entryPath));
+    } catch {
+      // Ignore missing npm dependency resolution and continue to local fallbacks.
+    }
+  }
+
+  candidateRoots.push(join(pluginRuntimeRoot, "bundled-plugins", pluginId));
+  candidateRoots.push(resolve(pluginRuntimeRoot, "..", "..", "..", pluginId));
+
+  for (const root of candidateRoots) {
+    const distDir = existsSync(join(root, "dist")) ? join(root, "dist") : root;
+    if (
+      existsSync(join(distDir, "index.js")) &&
+      existsSync(join(distDir, "openclaw.plugin.json")) &&
+      existsSync(join(distDir, "package.json"))
+    ) {
+      return distDir;
+    }
+  }
+
+  return null;
 }
 
 function materializeBundledSkill(sourceDir: string, targetDir: string): void {
@@ -402,6 +521,7 @@ function ensureHostConfig(
   const slots = ensureObject(plugins, "slots");
   const pluginEntry = ensureObject(entries, PLUGIN_ID);
   const userBindEntry = ensureObject(entries, REQUIRED_PLUGIN_IDS[0]);
+  const vectorEntry = ensureObject(entries, OPTIONAL_PLUGIN_IDS[0]);
   const pluginConfig = ensureObject(pluginEntry, "config");
   const pluginStore = ensureObject(pluginConfig, "store");
   const pluginCache = ensureObject(pluginConfig, "cache");
@@ -416,9 +536,7 @@ function ensureHostConfig(
     }
   }
   for (const optionalId of OPTIONAL_PLUGIN_IDS) {
-    if (optionalId in entries) {
-      changed = ensureArrayIncludes(plugins, "allow", optionalId) || changed;
-    }
+    changed = ensureArrayIncludes(plugins, "allow", optionalId) || changed;
   }
   changed = ensureArrayIncludes(plugins, "deny", "memory-core") || changed;
   changed = ensureArrayIncludes(load, "paths", join(homedir(), ".openclaw", "extensions")) || changed;
@@ -460,9 +578,55 @@ function ensureHostConfig(
   if (typeof userBindEntry.config !== "object" || userBindEntry.config == null) {
     userBindEntry.config = {
       enabled: true,
-      adminAgents: [],
+      adminAgents: ["main"],
     };
     changed = true;
+  }
+  const userBindConfig = ensureObject(userBindEntry, "config");
+  if (!Array.isArray(userBindConfig.adminAgents) || userBindConfig.adminAgents.length === 0) {
+    userBindConfig.adminAgents = ["main"];
+    changed = true;
+  }
+  if (typeof vectorEntry.enabled !== "boolean") {
+    vectorEntry.enabled = true;
+    changed = true;
+  }
+  if (typeof vectorEntry.config !== "object" || vectorEntry.config == null) {
+    vectorEntry.config = {
+      enabled: true,
+      markdownRoot: "~/.openclaw/memory/vector/markdown",
+      privateMarkdownRoot: "~/.openclaw/memory/vector/markdown/private",
+      sharedMarkdownRoot: "~/.openclaw/memory/vector/markdown/shared",
+      indexPath: "~/.openclaw/memory/vector/index.json",
+      topK: 5,
+    };
+    changed = true;
+  } else {
+    const vectorConfig = ensureObject(vectorEntry, "config");
+    if (typeof vectorConfig.enabled !== "boolean") {
+      vectorConfig.enabled = true;
+      changed = true;
+    }
+    if (typeof vectorConfig.markdownRoot !== "string" || vectorConfig.markdownRoot.length === 0) {
+      vectorConfig.markdownRoot = "~/.openclaw/memory/vector/markdown";
+      changed = true;
+    }
+    if (typeof vectorConfig.privateMarkdownRoot !== "string" || vectorConfig.privateMarkdownRoot.length === 0) {
+      vectorConfig.privateMarkdownRoot = "~/.openclaw/memory/vector/markdown/private";
+      changed = true;
+    }
+    if (typeof vectorConfig.sharedMarkdownRoot !== "string" || vectorConfig.sharedMarkdownRoot.length === 0) {
+      vectorConfig.sharedMarkdownRoot = "~/.openclaw/memory/vector/markdown/shared";
+      changed = true;
+    }
+    if (typeof vectorConfig.indexPath !== "string" || vectorConfig.indexPath.length === 0) {
+      vectorConfig.indexPath = "~/.openclaw/memory/vector/index.json";
+      changed = true;
+    }
+    if (typeof vectorConfig.topK !== "number") {
+      vectorConfig.topK = 5;
+      changed = true;
+    }
   }
 
   if (PLUGIN_ID in installs) {
@@ -471,6 +635,9 @@ function ensureHostConfig(
 
   changed = ensureToolAllowlist(tools) || changed;
   changed = ensureAgentSkills(agents, SKILL_ID) || changed;
+  changed = ensureAgentSkills(agents, USER_BIND_PROFILE_SKILL_ID) || changed;
+  changed = ensureAgentSkills(agents, VECTOR_SKILL_ID) || changed;
+  changed = ensureAdminSkills(agents, USER_BIND_ADMIN_SKILL_ID, ["main"]) || changed;
 
   if (!existsSync(targetSkillDir)) {
     logUnifiedMemoryEvent("host-bootstrap-skill-pending", { targetSkillDir });
@@ -481,6 +648,12 @@ function ensureHostConfig(
 
 function ensureToolAllowlist(tools: Record<string, unknown>): boolean {
   let changed = false;
+  const allow = Array.isArray(tools.allow) ? [...(tools.allow as string[])] : [];
+  const filteredAllow = allow.filter((toolName) => !LEGACY_TOOL_ALIASES.includes(toolName as typeof LEGACY_TOOL_ALIASES[number]));
+  if (!Array.isArray(tools.allow) || filteredAllow.length !== allow.length) {
+    tools.allow = filteredAllow;
+    changed = true;
+  }
   for (const toolName of REQUIRED_TOOL_NAMES) {
     changed = ensureArrayIncludes(tools, "allow", toolName) || changed;
   }
@@ -511,6 +684,48 @@ function ensureAgentSkills(agents: Record<string, unknown>, skillId: string): bo
   }
 
   return changed;
+}
+
+function ensureAdminSkills(
+  agents: Record<string, unknown>,
+  skillId: string,
+  adminAgentIds: string[],
+): boolean {
+  const list = Array.isArray(agents.list) ? agents.list : [];
+  let changed = false;
+  for (const item of list) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const agent = item as Record<string, unknown>;
+    const agentId = typeof agent.id === "string" ? agent.id : typeof agent.name === "string" ? agent.name : null;
+    if (!agentId || !adminAgentIds.includes(agentId)) {
+      continue;
+    }
+    const currentSkills = Array.isArray(agent.skills)
+      ? [...(agent.skills as string[])]
+      : [];
+    if (!Array.isArray(agent.skills)) {
+      agent.skills = currentSkills;
+      changed = true;
+    }
+    if (!currentSkills.includes(skillId)) {
+      currentSkills.push(skillId);
+      agent.skills = currentSkills;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function dependencySkillIds(pluginId: string): string[] {
+  if (pluginId === "bamdra-user-bind") {
+    return [USER_BIND_PROFILE_SKILL_ID, USER_BIND_ADMIN_SKILL_ID];
+  }
+  if (pluginId === "bamdra-memory-vector") {
+    return [VECTOR_SKILL_ID];
+  }
+  return [];
 }
 
 function ensureObject(

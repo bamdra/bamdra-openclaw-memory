@@ -88,6 +88,12 @@ export interface PersistentStore {
   applyMigrations(): Promise<void>;
   close(): Promise<void>;
   upsertMessage(record: MessageRecord): Promise<void>;
+  backfillSessionIdentity?(args: {
+    sessionId: string;
+    userId: string;
+    channelType?: string | null;
+    senderOpenId?: string | null;
+  }): Promise<void>;
   getSessionState(sessionId: string): Promise<SessionStateRecord | null>;
   upsertSessionState(record: SessionStateRecord): Promise<void>;
   listTopics(sessionId: string): Promise<TopicRecord[]>;

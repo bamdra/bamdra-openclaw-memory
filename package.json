@@ -1,7 +1,7 @@
 {
   "name": "bamdra-openclaw-memory",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.3.8",
   "packageManager": "pnpm@10.17.0",
   "workspaces": [
     "packages/*",
@@ -9,7 +9,7 @@
     "skills/*"
   ],
   "scripts": {
-    "build": "node ./scripts/run-local-bin.mjs typescript -b --force && pnpm --filter @openclaw-enhanced/bamdra-memory-context-engine run bundle && pnpm --filter @openclaw-enhanced/bamdra-memory-tools run bundle && pnpm --filter @bamdra/bamdra-openclaw-memory run bundle && node ./scripts/copy-assets.mjs",
+    "build": "node ./scripts/run-local-bin.mjs typescript -b --force && pnpm --dir ../bamdra-user-bind run bundle && pnpm --dir ../bamdra-memory-vector run bundle && pnpm --filter @openclaw-enhanced/bamdra-memory-context-engine run bundle && pnpm --filter @openclaw-enhanced/bamdra-memory-tools run bundle && pnpm --filter @bamdra/bamdra-openclaw-memory run bundle && node ./scripts/copy-assets.mjs",
     "clean": "find . -name dist -type d -prune -exec rm -rf {} + && find . -name tsconfig.tsbuildinfo -delete",
     "package:release": "node ./scripts/package-release.mjs",
     "typecheck": "node ./scripts/run-local-bin.mjs typescript -b --force --pretty false",
