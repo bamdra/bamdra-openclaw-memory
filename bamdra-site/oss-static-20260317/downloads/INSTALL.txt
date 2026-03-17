@@ -1,0 +1,31 @@
+Bamdra OpenClaw Memory Starter Kit
+
+Current plugin id:
+- bamdra-openclaw-memory
+
+Supported installation paths:
+1. npm / OpenClaw CLI
+   openclaw plugins install @bamdra/bamdra-openclaw-memory
+2. Manual release install
+   Copy bamdra-openclaw-memory into ~/.openclaw/extensions/
+
+Recommended manual installation flow:
+1. Copy bamdra-openclaw-memory into ~/.openclaw/extensions/
+2. Optionally copy bamdra-user-bind if you want it as a standalone plugin too
+3. Optionally copy bamdra-memory-vector if you want semantic retrieval
+4. Let bamdra-openclaw-memory auto-create ~/.openclaw/memory on bootstrap
+5. Merge openclaw.plugins.bamdra-memory.suite.merge.json into ~/.openclaw/openclaw.json
+6. Bind both plugins.slots.memory and plugins.slots.contextEngine to bamdra-openclaw-memory
+7. Use ~/.openclaw/memory/main.sqlite as the default SQLite path
+8. Restart OpenClaw
+
+Automatic bootstrap behavior:
+- bamdra-openclaw-memory can auto-provision bamdra-user-bind during npm-based install
+- bamdra-user-bind can also run independently
+- bamdra-memory-vector remains an independent optional plugin
+
+Repository:
+https://github.com/bamdra
+
+Docs:
+https://www.bamdra.com/zh/guide/installation

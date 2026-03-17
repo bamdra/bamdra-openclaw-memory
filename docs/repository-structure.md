@@ -2,135 +2,106 @@
 
 ## Principles
 
-- Put implementation-specific code behind stable package boundaries.
-- Keep OpenClaw-facing code thin.
-- Keep design docs close to code, but separate from runtime assets.
-- Default to local-first development and deployment.
-- Avoid coupling one enhancement to another unless the dependency is explicit.
+- keep public repository boundaries aligned with public plugin boundaries
+- keep OpenClaw-facing runtime code thin
+- keep shared implementation logic behind internal packages
+- keep private user data handling isolated and explicit
+- default to local-first deployment and low operational overhead
 
-## Directory Layout
+## Workspace Layout
 
 ```text
 openclaw-enhanced/
-  bamdra-memory/
+  bamdra-openclaw-memory/
     docs/
-      adr/
-    plugins/
+    examples/
+    packages/
       bamdra-memory-context-engine/
       bamdra-memory-tools/
-    skills/
-      bamdra-memory-operator/
-    packages/
+      context-assembler/
+      memory-cache-memory/
       memory-core/
       memory-sqlite/
-      memory-cache-memory/
-      memory-cache-redis/
       topic-router/
-      context-assembler/
+    plugins/
+      bamdra-memory/
     schemas/
-    examples/
-      configs/
+    skills/
+      bamdra-memory-operator/
     tests/
-      fixtures/
+  bamdra-user-bind/
+    src/
+    dist/
+    package.json
+    openclaw.plugin.json
+  bamdra-memory-vector/
+    src/
+    dist/
+    package.json
+    openclaw.plugin.json
+  bamdra-site/
+    .vitepress/
+    guide/
+    zh/
+    public/
   docs/
     repository-structure.md
-  scripts/
 ```
+
+## Public Release Boundaries
+
+The public open-source suite is organized around three repositories:
+
+- `bamdra-openclaw-memory`
+- `bamdra-user-bind`
+- `bamdra-memory-vector`
+
+`bamdra-memory-context-engine` and `bamdra-memory-tools` are no longer public standalone plugins. They now exist as internal packages under `bamdra-openclaw-memory/packages/`.
 
 ## Responsibilities
 
-### `bamdra-*`
+### `bamdra-openclaw-memory/`
 
-Each enhancement owns its own:
+Owns the main continuity-first memory runtime:
 
-- docs
-- packages
-- plugins
-- tests
-- schemas
-- examples
-- skills
-
-This keeps one enhancement from leaking structure into another.
-
-### `docs/`
-
-Repository-level documents only.
-
-### `bamdra-memory/plugins/bamdra-memory-context-engine/`
-
-OpenClaw plugin responsible for:
-
-- ingest hooks
-- topic routing
+- topic-aware memory behavior
 - context assembly
-- compaction policy
-- session resume behavior
+- durable facts
+- SQLite persistence
+- plugin entrypoint for OpenClaw
+- integration tests and examples
 
-This plugin should stay thin and delegate most domain logic to packages under `bamdra-memory/packages/`.
+### `bamdra-user-bind/`
 
-### `bamdra-memory/plugins/bamdra-memory-tools/`
+Owns identity and user-profile infrastructure:
 
-Optional plugin exposing memory tools such as:
+- channel identity resolution
+- user binding storage
+- profile injection
+- admin-safe profile tools
+- audit and isolation controls
 
-- `memory_save_fact`
-- `memory_search`
-- `memory_list_topics`
-- `memory_switch_topic`
-- `memory_compact_topic`
+### `bamdra-memory-vector/`
 
-### `bamdra-memory/skills/bamdra-memory-operator/`
+Owns optional semantic retrieval enhancement:
 
-Thin operational skill that teaches agents when to use memory tools.
+- Markdown memory artifacts
+- local vector-style index
+- scoped retrieval for current user memory
+- hybrid retrieval integration surface
 
-This skill should not implement memory behavior in prompt text. It should only guide tool usage and policy-aware behavior.
+### `bamdra-site/`
 
-### `bamdra-memory/packages/memory-core/`
+Owns public-facing website content:
 
-Shared interfaces and domain models:
+- product narrative
+- installation guides
+- download center
+- bilingual marketing and docs pages
 
-- topic
-- fact
-- snapshot
-- memory store
-- cache store
+## Internal Package Rules
 
-### `bamdra-memory/packages/memory-sqlite/`
-
-Persistent store backed by SQLite.
-
-### `bamdra-memory/packages/memory-cache-memory/`
-
-Default local cache implementation using in-process memory.
-
-### `bamdra-memory/packages/memory-cache-redis/`
-
-Optional Redis cache implementation. This is not required for the default deployment path.
-
-### `bamdra-memory/packages/topic-router/`
-
-Topic detection and switching logic.
-
-### `bamdra-memory/packages/context-assembler/`
-
-Prompt assembly logic that selects:
-
-- recent raw messages
-- topic summaries
-- pinned facts
-- open loops
-
-### `bamdra-memory/schemas/`
-
-Schema definitions for configuration validation and examples.
-
-### `bamdra-memory/examples/configs/`
-
-Copy-paste examples for local-only and Redis-enabled deployments.
-
-## Growth Rules
-
-- New enhancements should start under a new `bamdra-*` bundle directory.
-- Shared logic belongs in the component's `packages/`, not inside plugin entrypoints.
-- If an enhancement introduces new config, add a schema and example.
-- If a decision changes architecture or storage behavior, write an ADR.
+- shared logic belongs in `packages/`, not inside plugin entrypoints
+- public plugins should expose stable entrypoints and minimal runtime wiring
+- if a feature changes storage or public behavior, document it in the owning repo
+- if a plugin is not meant to be released independently, it should not live as a public plugin folder

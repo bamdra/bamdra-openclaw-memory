@@ -1,0 +1,43 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#08111F"/>
+  <g filter="url(#filter0_f_4_2)">
+    <circle cx="355" cy="202" r="170" fill="#7BE7D4" fill-opacity="0.32"/>
+    <circle cx="828" cy="344" r="192" fill="#7FB9FF" fill-opacity="0.28"/>
+  </g>
+  <g opacity="0.2">
+    <circle cx="180" cy="115" r="6" fill="#EFFBFF"/>
+    <circle cx="302" cy="98" r="6" fill="#EFFBFF"/>
+    <circle cx="444" cy="142" r="6" fill="#EFFBFF"/>
+    <circle cx="612" cy="110" r="6" fill="#EFFBFF"/>
+    <circle cx="782" cy="156" r="6" fill="#EFFBFF"/>
+    <circle cx="1014" cy="128" r="6" fill="#EFFBFF"/>
+    <circle cx="240" cy="278" r="6" fill="#EFFBFF"/>
+    <circle cx="390" cy="326" r="6" fill="#EFFBFF"/>
+    <circle cx="560" cy="282" r="6" fill="#EFFBFF"/>
+    <circle cx="724" cy="342" r="6" fill="#EFFBFF"/>
+    <circle cx="912" cy="294" r="6" fill="#EFFBFF"/>
+    <path d="M180 115L302 98L444 142L612 110L782 156L1014 128M240 278L390 326L560 282L724 342L912 294M302 98L390 326M444 142L560 282M782 156L724 342" stroke="#EFFBFF" stroke-width="2"/>
+  </g>
+  <g>
+    <circle cx="392" cy="238" r="28" fill="#7BE7D4"/>
+    <circle cx="504" cy="180" r="22" fill="#EFFBFF"/>
+    <circle cx="616" cy="246" r="34" fill="#7FB9FF"/>
+    <circle cx="458" cy="366" r="24" fill="#EFFBFF"/>
+    <circle cx="578" cy="330" r="44" fill="#7BE7D4"/>
+    <circle cx="714" cy="398" r="30" fill="#7FB9FF"/>
+    <path d="M392 238L504 180L616 246M392 238L458 366L578 330M504 180L578 330L714 398M458 366L578 330L714 398" stroke="url(#paint0_linear_4_2)" stroke-width="14" stroke-linecap="round"/>
+  </g>
+  <text x="110" y="510" fill="#EFFBFF" font-size="92" font-family="Outfit, sans-serif" font-weight="800">Bamdra</text>
+  <text x="116" y="565" fill="#AEC0E2" font-size="34" font-family="Space Grotesk, sans-serif">AI Memory Engine for OpenClaw</text>
+  <defs>
+    <filter id="filter0_f_4_2" x="95" y="-58" width="925" height="684" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="45" result="effect1_foregroundBlur_4_2"/>
+    </filter>
+    <linearGradient id="paint0_linear_4_2" x1="392" y1="180" x2="714" y2="398" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7BE7D4"/>
+      <stop offset="1" stop-color="#7FB9FF"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,24 @@
+<svg width="420" height="360" viewBox="0 0 420 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="premiumGradient" x1="80" y1="30" x2="340" y2="290" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="50%" stop-color="#7000FF"/>
+      <stop offset="100%" stop-color="#FF00D6"/>
+    </linearGradient>
+    <filter id="glow-clean" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <g transform="translate(-18,-22) scale(1.18)">
+    <rect x="177.5" y="110" width="5" height="190" rx="2.5" fill="url(#premiumGradient)"/>
+    <path d="M172 154 L74 126 C66 123 62 133 68 138 L110 193 L172 208 Z" fill="url(#premiumGradient)" fill-opacity="0.95"/>
+    <path d="M188 154 L286 126 C294 123 298 133 292 138 L250 193 L188 208 Z" fill="url(#premiumGradient)" fill-opacity="0.95"/>
+    <path d="M172 222 L98 222 C90 222 86 233 93 239 L132 282 L172 268 Z" fill="url(#premiumGradient)" fill-opacity="0.6"/>
+    <path d="M188 222 L262 222 C270 222 274 233 267 239 L228 282 L188 268 Z" fill="url(#premiumGradient)" fill-opacity="0.6"/>
+    <circle cx="180" cy="110" r="4.5" fill="#FFFFFF" filter="url(#glow-clean)"/>
+    <circle cx="180" cy="110" r="18" stroke="white" stroke-opacity="0.04" fill="none"/>
+    <circle cx="198" cy="110" r="2.8" fill="#00F0FF" filter="url(#glow-clean)"/>
+    <path d="M198 110 A 18 18 0 0 1 180 128" stroke="url(#premiumGradient)" stroke-width="1" stroke-opacity="0.24" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

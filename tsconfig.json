@@ -2,34 +2,34 @@
   "files": [],
   "references": [
     {
-      "path": "./bamdra-memory/packages/memory-core"
+      "path": "./bamdra-openclaw-memory/packages/memory-core"
     },
     {
-      "path": "./bamdra-memory/packages/memory-cache-memory"
+      "path": "./bamdra-openclaw-memory/packages/memory-cache-memory"
     },
     {
-      "path": "./bamdra-memory/packages/memory-cache-redis"
+      "path": "./bamdra-openclaw-memory/packages/topic-router"
     },
     {
-      "path": "./bamdra-memory/packages/topic-router"
+      "path": "./bamdra-openclaw-memory/packages/context-assembler"
     },
     {
-      "path": "./bamdra-memory/packages/context-assembler"
+      "path": "./bamdra-openclaw-memory/packages/fact-extractor"
     },
     {
-      "path": "./bamdra-memory/packages/fact-extractor"
+      "path": "./bamdra-openclaw-memory/packages/summary-refresher"
     },
     {
-      "path": "./bamdra-memory/packages/summary-refresher"
+      "path": "./bamdra-openclaw-memory/packages/memory-sqlite"
     },
     {
-      "path": "./bamdra-memory/packages/memory-sqlite"
+      "path": "./bamdra-openclaw-memory/packages/bamdra-memory-context-engine"
     },
     {
-      "path": "./bamdra-memory/plugins/bamdra-memory-context-engine"
+      "path": "./bamdra-openclaw-memory/packages/bamdra-memory-tools"
     },
     {
-      "path": "./bamdra-memory/plugins/bamdra-memory-tools"
+      "path": "./bamdra-openclaw-memory/plugins/bamdra-memory"
     }
   ]
 }

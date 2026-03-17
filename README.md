@@ -1,42 +1,61 @@
-# openclaw-topic-memory
+# Bamdra OpenClaw Memory Workspace
 
-Topic-aware memory for OpenClaw with durable recall. 为 OpenClaw 提供话题感知记忆与持久召回。
+![Bamdra Animated Logo](./bamdra-openclaw-memory/docs/assets/bamdra-logo-animated.svg)
 
-This repository publishes the current `bamdra-memory` implementation as a standalone OpenClaw memory project.
+This workspace is the local umbrella repository for the Bamdra OpenClaw memory suite.
 
-## Why It Is Useful
+One-command install entry:
 
-- long OpenClaw sessions stay coherent across interruptions
-- stable preferences, paths, and constraints can be reused later
-- the active context stays compact instead of replaying whole chat histories
-- SQLite persistence is built in, with Redis kept optional
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+```
 
-## Start Here
+It contains four top-level projects:
 
-- English:
-  [bamdra-memory README](./bamdra-memory/README.md)
-- 中文：
-  [bamdra-memory README.zh-CN](./bamdra-memory/README.zh-CN.md)
+- `bamdra-openclaw-memory/`
+  The main OpenClaw memory plugin. It provides continuity-first memory, topic routing, context assembly, durable fact recall, and the unified runtime entrypoint.
+- `bamdra-user-bind/`
+  The identity and profile binding plugin. It resolves channel identity, stores user bindings locally, supports Feishu-oriented binding flows, and exposes admin-safe profile tools.
+- `bamdra-memory-vector/`
+  The optional semantic retrieval plugin. It keeps Markdown-readable memory artifacts and a lightweight local vector-style index for scoped recall.
+- `bamdra-site/`
+  The public-facing product website and documentation source.
 
-## Repository Layout
+## Public Repository Model
 
-- `bamdra-memory/`
-  The actual implementation bundle, including docs, packages, plugins, examples, schemas, skills, and tests.
-- `docs/`
-  Repository-level notes.
+The public open-source suite is now organized around three plugin repositories:
+
+- `bamdra-openclaw-memory`
+- `bamdra-user-bind`
+- `bamdra-memory-vector`
+
+This workspace exists so those repositories can be developed together and documented together before or alongside repo split/public release work.
+
+## Where To Start
+
+- Main plugin docs:
+  [bamdra-openclaw-memory README](/Users/wood/workspace/macmini-openclaw/openclaw-enhanced/bamdra-openclaw-memory/README.md)
+- Identity plugin docs:
+  [bamdra-user-bind README](/Users/wood/workspace/macmini-openclaw/openclaw-enhanced/bamdra-user-bind/README.md)
+- Vector plugin docs:
+  [bamdra-memory-vector README](/Users/wood/workspace/macmini-openclaw/openclaw-enhanced/bamdra-memory-vector/README.md)
+- Workspace structure notes:
+  [repository-structure.md](/Users/wood/workspace/macmini-openclaw/openclaw-enhanced/docs/repository-structure.md)
 
 ## Quick Commands
 
 ```bash
 pnpm install
+pnpm typecheck
 pnpm build
 pnpm test
 ```
 
-## Recommended Public Description
+## Open Source Note
 
-`Topic-aware memory for OpenClaw with durable recall. 为 OpenClaw 提供话题感知记忆与持久召回。`
+`bamdra-user-bind` and `bamdra-memory-vector` currently have compact source trees, but they do include their real plugin source code:
 
-## Current Position
+- [bamdra-user-bind/src/index.ts](/Users/wood/workspace/macmini-openclaw/openclaw-enhanced/bamdra-user-bind/src/index.ts)
+- [bamdra-memory-vector/src/index.ts](/Users/wood/workspace/macmini-openclaw/openclaw-enhanced/bamdra-memory-vector/src/index.ts)
 
-The project is ready for local OpenClaw usage and evaluation. The main long-term follow-up is aligning the runtime adapter with the final upstream OpenClaw context-engine SDK surface when that API stabilizes.
+They look small because the first open-source version is intentionally shipped as single-entry, low-dependency plugins rather than spread across many internal packages.

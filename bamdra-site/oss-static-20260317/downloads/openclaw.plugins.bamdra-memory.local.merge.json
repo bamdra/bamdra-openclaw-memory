@@ -1,0 +1,45 @@
+{
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "bamdra-openclaw-memory"
+    ],
+    "deny": [
+      "memory-core"
+    ],
+    "load": {
+      "paths": [
+        "~/.openclaw/extensions/bamdra-openclaw-memory"
+      ]
+    },
+    "slots": {
+      "memory": "bamdra-openclaw-memory",
+      "contextEngine": "bamdra-openclaw-memory"
+    },
+    "entries": {
+      "bamdra-openclaw-memory": {
+        "enabled": true,
+        "config": {
+          "enabled": true,
+          "store": {
+            "provider": "sqlite",
+            "path": "~/.openclaw/memory/main.sqlite"
+          },
+          "cache": {
+            "provider": "memory",
+            "maxSessions": 128,
+            "maxTopicsPerSession": 64,
+            "maxFacts": 2048
+          },
+          "contextAssembly": {
+            "recentTurns": 6,
+            "includeTopicShortSummary": true,
+            "includeOpenLoops": true,
+            "alwaysFactLimit": 12,
+            "topicFactLimit": 16
+          }
+        }
+      }
+    }
+  }
+}

@@ -22,15 +22,15 @@
 
 审核了以下核心源码文件:
 
-- `bamdra-memory/packages/memory-core/src/index.ts` - 核心类型定义
-- `bamdra-memory/packages/memory-sqlite/src/index.ts` - SQLite持久化存储
-- `bamdra-memory/packages/memory-cache-memory/src/index.ts` - 内存缓存
-- `bamdra-memory/packages/memory-cache-redis/src/index.ts` - Redis缓存
-- `bamdra-memory/packages/context-assembler/src/index.ts` - 上下文组装器
-- `bamdra-memory/packages/topic-router/src/index.ts` - 主题路由
-- `bamdra-memory/plugins/bamdra-memory-tools/src/index.ts` - 工具插件
-- `bamdra-memory/plugins/bamdra-memory-tools/src/plugin.ts` - 工具注册
-- `bamdra-memory/plugins/bamdra-memory-context-engine/src/index.ts` - 上下文引擎
+- `bamdra-openclaw-memory/packages/memory-core/src/index.ts` - 核心类型定义
+- `bamdra-openclaw-memory/packages/memory-sqlite/src/index.ts` - SQLite持久化存储
+- `bamdra-openclaw-memory/packages/memory-cache-memory/src/index.ts` - 内存缓存
+- `bamdra-openclaw-memory/packages/in-process cache/src/index.ts` - Redis缓存
+- `bamdra-openclaw-memory/packages/context-assembler/src/index.ts` - 上下文组装器
+- `bamdra-openclaw-memory/packages/topic-router/src/index.ts` - 主题路由
+- `bamdra-openclaw-memory/packages/bamdra-memory-tools/src/index.ts` - 工具插件
+- `bamdra-openclaw-memory/packages/bamdra-memory-tools/src/plugin.ts` - 工具注册
+- `bamdra-openclaw-memory/packages/bamdra-memory-context-engine/src/index.ts` - 上下文引擎
 
 ### 代码质量评估
 
@@ -53,7 +53,7 @@
 
 **建议关注点 (非阻塞):**
 
-1. `memory-cache-redis` 中重复调用fallback问题可优化
+1. `in-process cache` 中重复调用fallback问题可优化
 2. 建议增加更多单元测试覆盖边界场景
 
 ### 审核结论
@@ -69,10 +69,10 @@
 审计了以下对外文档:
 
 - `README.md` (根目录)
-- `bamdra-memory/README.md` / `README.zh-CN.md`
+- `bamdra-openclaw-memory/README.md` / `README.zh-CN.md`
 - `CHANGELOG.md`
 - `docs/repository-structure.md`
-- `bamdra-memory/docs/` 下的所有技术文档
+- `bamdra-openclaw-memory/docs/` 下的所有技术文档
 
 ### 文档规范检查
 
@@ -109,12 +109,12 @@
 
 - **版本号**: 0.1.0
 - **打包工具**: pnpm deploy
-- **输出目录**: `artifacts/openclaw-topic-memory-release-2026-03-13T02-14-08.501Z/`
+- **输出目录**: `artifacts/bamdra-openclaw-memory-release-2026-03-13T02-14-08.501Z/`
 
 ### 打包内容
 
 ```
-openclaw-topic-memory-release-2026-03-13T02-14-08.501Z/
+bamdra-openclaw-memory-release-2026-03-13T02-14-08.501Z/
 ├── bamdra-memory-context-engine/
 │   ├── src/
 │   ├── README.md

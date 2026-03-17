@@ -1,0 +1,66 @@
+<svg width="1600" height="880" viewBox="0 0 1600 880" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="180" y1="40" x2="1420" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F1628"/>
+      <stop offset="1" stop-color="#090C13"/>
+    </linearGradient>
+    <linearGradient id="line" x1="260" y1="430" x2="1340" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8BF389"/>
+      <stop offset="1" stop-color="#B56EFF"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .guide-line { stroke-dasharray: 16 18; animation: dashFlow 10s linear infinite; }
+    .stage-a { animation: stageFloat 8s ease-in-out infinite; }
+    .stage-b { animation: stageFloat 8s ease-in-out infinite 0.6s; }
+    .stage-c { animation: stageFloat 8s ease-in-out infinite 1.2s; }
+    .badge-a { animation: badgePulse 5s ease-in-out infinite; transform-origin: 118px 272px; }
+    .badge-b { animation: badgePulse 5s ease-in-out infinite 0.6s; transform-origin: 570px 242px; }
+    .badge-c { animation: badgePulse 5s ease-in-out infinite 1.2s; transform-origin: 1146px 272px; }
+    @keyframes dashFlow {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -68; }
+    }
+    @keyframes stageFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); opacity: 0.96; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+  </style>
+  <rect width="1600" height="880" rx="40" fill="url(#bg)"/>
+  <text x="96" y="120" fill="#FFFFFF" font-size="56" font-family="Arial, sans-serif" font-weight="700">What ordinary users actually get</text>
+  <text x="96" y="164" fill="#AFB8D4" font-size="24" font-family="Arial, sans-serif">Not just memory. A system that becomes more useful as it learns your style, work, and files.</text>
+  <path class="guide-line" d="M260 430H1340" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+
+  <rect class="stage-a" x="96" y="250" width="380" height="260" rx="28" fill="#121928" stroke="rgba(255,255,255,0.12)"/>
+  <circle class="badge-a" cx="118" cy="272" r="26" fill="#173928"/>
+  <text x="110" y="281" fill="#9FF7A4" font-size="22" font-family="Arial, sans-serif" font-weight="700">1</text>
+  <text x="132" y="320" fill="#FFFFFF" font-size="31" font-family="Arial, sans-serif" font-weight="700">It knows who you are</text>
+  <text x="132" y="372" fill="#C3CAE0" font-size="22" font-family="Arial, sans-serif">Preferred name: Boss</text>
+  <text x="132" y="408" fill="#C3CAE0" font-size="22" font-family="Arial, sans-serif">Timezone: Asia/Shanghai</text>
+  <text x="132" y="444" fill="#C3CAE0" font-size="20" font-family="Arial, sans-serif">Tone: humorous, but not too</text>
+  <text x="132" y="472" fill="#C3CAE0" font-size="20" font-family="Arial, sans-serif">much</text>
+
+  <rect class="stage-b" x="548" y="220" width="504" height="320" rx="32" fill="#17192C" stroke="rgba(255,255,255,0.12)"/>
+  <circle class="badge-b" cx="570" cy="242" r="26" fill="#33204A"/>
+  <text x="562" y="251" fill="#D6A1FF" font-size="22" font-family="Arial, sans-serif" font-weight="700">2</text>
+  <text x="576" y="300" fill="#FFFFFF" font-size="34" font-family="Arial, sans-serif" font-weight="700">It remembers what matters</text>
+  <rect x="586" y="358" width="428" height="62" rx="18" fill="#0F1420"/>
+  <text x="606" y="396" fill="#E8EEFF" font-size="19" font-family="Arial, sans-serif">Current focus: rebuilding the OpenClaw plugins</text>
+  <rect x="586" y="438" width="328" height="62" rx="18" fill="#0F1420"/>
+  <text x="606" y="476" fill="#E8EEFF" font-size="21" font-family="Arial, sans-serif">Fries: your cat</text>
+
+  <rect class="stage-c" x="1124" y="250" width="380" height="260" rx="28" fill="#121928" stroke="rgba(255,255,255,0.12)"/>
+  <circle class="badge-c" cx="1146" cy="272" r="26" fill="#18334D"/>
+  <text x="1138" y="281" fill="#8FD9FF" font-size="22" font-family="Arial, sans-serif" font-weight="700">3</text>
+  <text x="1160" y="320" fill="#FFFFFF" font-size="29" font-family="Arial, sans-serif" font-weight="700">It checks your files first</text>
+  <text x="1160" y="372" fill="#C3CAE0" font-size="21" font-family="Arial, sans-serif">Search docs / knowledge / notes</text>
+  <text x="1160" y="408" fill="#C3CAE0" font-size="21" font-family="Arial, sans-serif">Use private &amp; shared vaults</text>
+  <text x="1160" y="444" fill="#C3CAE0" font-size="18" font-family="Arial, sans-serif">Only use web when local files are</text>
+  <text x="1160" y="470" fill="#C3CAE0" font-size="18" font-family="Arial, sans-serif">not enough</text>
+
+  <text x="96" y="786" fill="#B1BBD8" font-size="22" font-family="Arial, sans-serif">End result: more personal, more continuous, faster answers, and lower token waste.</text>
+</svg>

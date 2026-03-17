@@ -4,20 +4,22 @@
   "version": "0.1.0",
   "packageManager": "pnpm@10.17.0",
   "workspaces": [
-    "bamdra-*/packages/*",
-    "bamdra-*/plugins/*",
-    "bamdra-*/skills/*"
+    "bamdra-openclaw-memory/packages/*",
+    "bamdra-openclaw-memory/plugins/*",
+    "bamdra-openclaw-memory/skills/*",
+    "bamdra-user-bind",
+    "bamdra-memory-vector",
+    "bamdra-site"
   ],
   "scripts": {
-    "build": "tsc -b --clean && tsc -b && pnpm --filter @openclaw-enhanced/bamdra-memory-context-engine run bundle && pnpm --filter @openclaw-enhanced/bamdra-memory-tools run bundle && node ./scripts/copy-assets.mjs",
+    "build": "pnpm --dir ./bamdra-openclaw-memory build && pnpm --dir ./bamdra-user-bind run bundle && pnpm --dir ./bamdra-memory-vector run bundle",
     "clean": "find . -name dist -type d -prune -exec rm -rf {} + && find . -name tsconfig.tsbuildinfo -delete",
     "package:release": "node ./scripts/package-release.mjs",
-    "typecheck": "tsc -b --pretty false",
-    "test": "pnpm typecheck && pnpm build && node --test bamdra-*/tests/**/*.test.mjs"
+    "typecheck": "pnpm --dir ./bamdra-openclaw-memory typecheck",
+    "test": "pnpm typecheck && pnpm build && node --test bamdra-openclaw-memory/tests/**/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
-    "redis": "^5.11.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2"
   }

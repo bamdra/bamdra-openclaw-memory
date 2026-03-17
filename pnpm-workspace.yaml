@@ -1,4 +1,7 @@
 packages:
-  - "bamdra-*/packages/*"
-  - "bamdra-*/plugins/*"
-  - "bamdra-*/skills/*"
+  - "bamdra-openclaw-memory/packages/*"
+  - "bamdra-openclaw-memory/plugins/*"
+  - "bamdra-openclaw-memory/skills/*"
+  - "bamdra-user-bind"
+  - "bamdra-memory-vector"
+  - "bamdra-site"

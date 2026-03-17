@@ -11,31 +11,28 @@
     "baseUrl": ".",
     "paths": {
       "@openclaw-enhanced/memory-core": [
-        "bamdra-memory/packages/memory-core/src/index.ts"
+        "bamdra-openclaw-memory/packages/memory-core/src/index.ts"
       ],
       "@openclaw-enhanced/memory-sqlite": [
-        "bamdra-memory/packages/memory-sqlite/src/index.ts"
+        "bamdra-openclaw-memory/packages/memory-sqlite/src/index.ts"
       ],
       "@openclaw-enhanced/memory-cache-memory": [
-        "bamdra-memory/packages/memory-cache-memory/src/index.ts"
-      ],
-      "@openclaw-enhanced/memory-cache-redis": [
-        "bamdra-memory/packages/memory-cache-redis/src/index.ts"
+        "bamdra-openclaw-memory/packages/memory-cache-memory/src/index.ts"
       ],
       "@openclaw-enhanced/topic-router": [
-        "bamdra-memory/packages/topic-router/src/index.ts"
+        "bamdra-openclaw-memory/packages/topic-router/src/index.ts"
       ],
       "@openclaw-enhanced/context-assembler": [
-        "bamdra-memory/packages/context-assembler/src/index.ts"
+        "bamdra-openclaw-memory/packages/context-assembler/src/index.ts"
       ],
       "@openclaw-enhanced/fact-extractor": [
-        "bamdra-memory/packages/fact-extractor/src/index.ts"
+        "bamdra-openclaw-memory/packages/fact-extractor/src/index.ts"
       ],
       "@openclaw-enhanced/summary-refresher": [
-        "bamdra-memory/packages/summary-refresher/src/index.ts"
+        "bamdra-openclaw-memory/packages/summary-refresher/src/index.ts"
       ],
       "@openclaw-enhanced/bamdra-memory-context-engine": [
-        "bamdra-memory/plugins/bamdra-memory-context-engine/src/index.ts"
+        "bamdra-openclaw-memory/packages/bamdra-memory-context-engine/src/index.ts"
       ]
     },
     "types": [

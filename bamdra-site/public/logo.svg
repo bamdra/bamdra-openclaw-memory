@@ -1,0 +1,62 @@
+<svg width="960" height="260" viewBox="0 0 960 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bamdraWord" x1="60" y1="176" x2="818" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8EF58C"/>
+      <stop offset="0.48" stop-color="#E2F5E7"/>
+      <stop offset="1" stop-color="#B66EFF"/>
+    </linearGradient>
+    <linearGradient id="prismStroke" x1="390" y1="28" x2="615" y2="190" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A8FFA2"/>
+      <stop offset="1" stop-color="#C071FF"/>
+    </linearGradient>
+    <linearGradient id="prismFaceA" x1="438" y1="34" x2="550" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8EF58C"/>
+      <stop offset="1" stop-color="#253126"/>
+    </linearGradient>
+    <linearGradient id="prismFaceB" x1="472" y1="50" x2="610" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B231D"/>
+      <stop offset="1" stop-color="#6E348F"/>
+    </linearGradient>
+    <linearGradient id="prismFaceC" x1="492" y1="74" x2="626" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9CF79D"/>
+      <stop offset="1" stop-color="#22272D"/>
+    </linearGradient>
+    <linearGradient id="ribbonGreen" x1="268" y1="48" x2="420" y2="136" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DFFFE0"/>
+      <stop offset="0.4" stop-color="#9EF59A"/>
+      <stop offset="1" stop-color="#5FCF62"/>
+    </linearGradient>
+    <linearGradient id="ribbonPurple" x1="222" y1="122" x2="376" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F0D8FF"/>
+      <stop offset="0.42" stop-color="#C88BFF"/>
+      <stop offset="1" stop-color="#8F4CC7"/>
+    </linearGradient>
+    <filter id="softGlow" x="154" y="0" width="514" height="240" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="22" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#softGlow)">
+    <path d="M470 30L564 94L564 194L470 228L410 194L410 94L470 30Z" fill="#0F141A" stroke="url(#prismStroke)" stroke-width="2.5"/>
+    <path d="M470 30L410 94L410 194L470 150V30Z" fill="url(#prismFaceB)" fill-opacity="0.92"/>
+    <path d="M470 30L564 94L470 150V30Z" fill="url(#prismFaceA)" fill-opacity="0.92"/>
+    <path d="M470 150L564 94L564 194L470 228V150Z" fill="url(#prismFaceC)" fill-opacity="0.9"/>
+    <path d="M470 150L410 194L470 228L564 194L470 150Z" fill="#0A0D12" fill-opacity="0.9"/>
+
+    <path d="M252 90C282 54 332 48 366 76C391 97 397 130 386 155C371 189 329 202 296 182C271 166 259 137 266 111C271 95 282 81 299 70C329 50 367 53 396 82C413 99 422 120 424 146" stroke="url(#ribbonGreen)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.96"/>
+    <path d="M224 118C256 98 295 99 324 121C346 137 358 161 358 187C358 203 352 218 339 230C320 246 295 248 274 237C248 223 233 193 238 163C244 127 272 100 304 91C344 81 383 97 408 129" stroke="url(#ribbonPurple)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.94"/>
+
+    <path d="M278 114C305 119 324 137 332 160" stroke="#EEFFEF" stroke-width="3.4" stroke-linecap="round" opacity="0.72"/>
+    <path d="M251 145C272 164 283 189 284 214" stroke="#F0D8FF" stroke-width="3.4" stroke-linecap="round" opacity="0.54"/>
+    <circle cx="300" cy="108" r="6" fill="#EFFFF0" opacity="0.84"/>
+  </g>
+
+  <g fill="url(#bamdraWord)">
+    <path d="M24 129.5H57.6C83.2 129.5 96.2 140.8 96.2 159.2C96.2 172.3 88.4 181.5 75.2 185.2C91.1 188.2 100.8 198.9 100.8 214.6C100.8 237.1 84.9 250 54.8 250H24V129.5ZM54.1 181.1C69 181.1 78.4 174.2 78.4 162.1C78.4 150.9 70.1 144.1 54.4 144.1H40.7V181.1H54.1ZM55.8 235.3C74.1 235.3 84.1 228.1 84.1 214.8C84.1 202 73.2 195 54.1 195H40.7V235.3H55.8Z"/>
+    <path d="M178.3 129.5H190.5L241.2 250H223.3L205.7 207.3H162.1L144.6 250H127L178.3 129.5ZM199.6 193.6L183.9 155.3L168.1 193.6H199.6Z"/>
+    <path d="M322.4 129.5H342.6L383.2 217.8L423.1 129.5H443.4V250H427.5V151.2L389.4 236.3H376.8L338.3 151V250H322.4V129.5Z"/>
+    <path d="M531.1 129.5H569.7C607.5 129.5 632.5 153.3 632.5 189.6C632.5 226.1 607.3 250 568.8 250H531.1V129.5ZM568.8 235.1C596.9 235.1 615.6 217.1 615.6 189.6C615.6 162.3 596.7 144.4 568.1 144.4H547.8V235.1H568.8Z"/>
+    <path d="M720.6 129.5H759.5C783.6 129.5 798.8 142 798.8 162.5C798.8 178.2 790.7 189.3 776.1 194.2L804.2 250H785.2L759.6 197.4H737.4V250H720.6V129.5ZM758.7 182.9C773.2 182.9 781.9 175.8 781.9 163.5C781.9 151.4 773.2 144.2 758.7 144.2H737.4V182.9H758.7Z"/>
+    <path d="M884.5 129.5H896.7L947.4 250H929.5L911.9 207.3H868.3L850.8 250H833.2L884.5 129.5ZM905.8 193.6L890.1 155.3L874.3 193.6H905.8Z"/>
+  </g>
+</svg>
