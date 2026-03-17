@@ -51,15 +51,13 @@ Desired effect:
 
 ## What Tools Exist in Practice
 
-`bamdra_list_topics`, `bamdra_switch_topic`, `bamdra_save_fact`, `bamdra_compact_topic`, and `bamdra_search`
-are aliases of `memory_list_topics`, `memory_switch_topic`, `memory_save_fact`, `memory_compact_topic`, and `memory_search`.
+The current tool set is:
 
-That means:
-
-- `bamdra_*` and `memory_*` are the same tool set
-- they take the same parameters
-- they have the same runtime behavior
-- the docs use `memory_*` as the canonical names for explanation
+- `memory_list_topics`
+- `memory_switch_topic`
+- `memory_save_fact`
+- `memory_compact_topic`
+- `memory_search`
 
 ### What These Five Tools Actually Do
 

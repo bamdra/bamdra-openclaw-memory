@@ -167,7 +167,7 @@ On process start:
 
 The first implementation pass includes a concrete SQLite schema at:
 
-- `bamdra-memory/packages/memory-sqlite/src/schema.sql`
+- `bamdra-openclaw-memory/packages/memory-sqlite/src/schema.sql`
 
 This schema covers:
 

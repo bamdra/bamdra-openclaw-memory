@@ -1,0 +1,71 @@
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "tsup";
+
+const configDir = fileURLToPath(new URL(".", import.meta.url));
+const workspaceAliases = {
+  "@openclaw-enhanced/bamdra-memory-context-engine": resolve(
+    configDir,
+    "../../packages/bamdra-memory-context-engine/src/index.ts",
+  ),
+  "@openclaw-enhanced/context-assembler": resolve(
+    configDir,
+    "../../packages/context-assembler/src/index.ts",
+  ),
+  "@openclaw-enhanced/fact-extractor": resolve(
+    configDir,
+    "../../packages/fact-extractor/src/index.ts",
+  ),
+  "@openclaw-enhanced/memory-cache-memory": resolve(
+    configDir,
+    "../../packages/memory-cache-memory/src/index.ts",
+  ),
+  "@openclaw-enhanced/memory-core": resolve(
+    configDir,
+    "../../packages/memory-core/src/index.ts",
+  ),
+  "@openclaw-enhanced/memory-sqlite": resolve(
+    configDir,
+    "../../packages/memory-sqlite/src/index.ts",
+  ),
+  "@openclaw-enhanced/summary-refresher": resolve(
+    configDir,
+    "../../packages/summary-refresher/src/index.ts",
+  ),
+  "@openclaw-enhanced/topic-router": resolve(
+    configDir,
+    "../../packages/topic-router/src/index.ts",
+  ),
+};
+
+export default defineConfig({
+  entry: ["src/index.ts"],
+  format: ["cjs"],
+  clean: false,
+  bundle: true,
+  shims: true,
+  target: "node22",
+  splitting: false,
+  noExternal: [/.*/],
+  external: [
+    "node:sqlite",
+    "node:fs",
+    "node:path",
+    "node:url",
+    "node:events",
+    "node:fs/promises",
+    "node:crypto",
+    "node:os",
+  ],
+  outExtension() {
+    return { js: ".js" };
+  },
+  esbuildOptions(options) {
+    options.platform = "node";
+    options.target = "node22";
+    options.alias = {
+      ...(options.alias ?? {}),
+      ...workspaceAliases,
+    };
+  }
+});

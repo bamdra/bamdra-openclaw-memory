@@ -19,10 +19,6 @@
     },
     "cache.provider": {
       "label": "Cache Provider"
-    },
-    "cache.url": {
-      "label": "Redis URL",
-      "placeholder": "redis://127.0.0.1:6379/0"
     }
   }
 }

@@ -46,8 +46,12 @@
       "memory-v2"
     ],
     "slots": {
-      "contextEngine": {
-        "package": "@openclaw-enhanced/bamdra-memory-context-engine",
+      "memory": "bamdra-openclaw-memory",
+      "contextEngine": "bamdra-openclaw-memory"
+    },
+    "entries": {
+      "bamdra-openclaw-memory": {
+        "enabled": true,
         "config": {
           "enabled": true,
           "store": {

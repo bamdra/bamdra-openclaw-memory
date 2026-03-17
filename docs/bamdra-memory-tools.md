@@ -2,7 +2,9 @@
 
 ## Purpose
 
-`bamdra-memory-tools` exposes explicit topic-control operations on top of the `bamdra-memory-context-engine` runtime.
+`bamdra-openclaw-memory` exposes these explicit topic-control operations from the unified plugin runtime.
+
+The historical `bamdra-memory-tools` package still exists in the source tree as an internal compatibility layer, but `0.3.0` ships and documents these tools as part of the single `bamdra-openclaw-memory` plugin.
 
 It exists so agents can:
 
@@ -12,15 +14,13 @@ It exists so agents can:
 - force-refresh a topic summary when the branch state has changed
 - search existing topics and pinned facts without replaying whole history
 
-The tool layer should not reimplement routing or storage logic. It delegates to the context engine.
+The tool layer should not reimplement routing or storage logic. It delegates to the same context engine instance owned by the unified plugin.
 
 ## Current Tools
 
-`bamdra_list_topics`, `bamdra_switch_topic`, `bamdra_save_fact`, `bamdra_compact_topic`, and `bamdra_search`
-are aliases for the same runtime operations exposed as `memory_list_topics`, `memory_switch_topic`,
-`memory_save_fact`, `memory_compact_topic`, and `memory_search`.
+The current canonical tool set is:
 
-This document uses the `memory_*` names as canonical labels.
+`memory_list_topics`, `memory_switch_topic`, `memory_save_fact`, `memory_compact_topic`, and `memory_search`.
 
 ### `memory_list_topics`
 

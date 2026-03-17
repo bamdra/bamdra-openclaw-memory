@@ -6,29 +6,61 @@ import { spawnSync } from "node:child_process";
 const repoRoot = resolve(import.meta.dirname, "..");
 const pkg = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
 const version = process.argv[2] ?? `v${pkg.version}`;
-const outDir = resolve(repoRoot, "artifacts", `openclaw-topic-memory-${version}`);
-const bundleRoot = resolve(outDir, "openclaw-topic-memory");
+const outDir = resolve(repoRoot, "artifacts", `bamdra-openclaw-memory-${version}`);
+const bundleRoot = resolve(outDir, "bamdra-openclaw-memory");
 const skipBuild = process.env.OPENCLAW_MEMORY_SKIP_BUILD === "1";
+const workspaceRoot = resolve(repoRoot, "..");
+const siblingPlugins = [
+  {
+    repoDir: "bamdra-user-bind",
+    releaseDirName: "bamdra-user-bind",
+  },
+  {
+    repoDir: "bamdra-memory-vector",
+    releaseDirName: "bamdra-memory-vector",
+  },
+];
 
 if (!skipBuild) {
-  run(["pnpm", "build"]);
+  run(["pnpm", "build"], workspaceRoot);
 }
 
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(bundleRoot, { recursive: true });
 
-const pluginNames = [
-  "bamdra-memory-context-engine",
-  "bamdra-memory-tools",
+const plugins = [
+  {
+    sourceDirName: "bamdra-memory",
+    releaseDirName: "bamdra-openclaw-memory",
+  },
 ];
 
-for (const name of pluginNames) {
-  const srcDir = resolve(repoRoot, "plugins", name, "dist");
-  const destDir = resolve(bundleRoot, name);
+for (const plugin of plugins) {
+  const srcDir = resolve(repoRoot, "plugins", plugin.sourceDirName, "dist");
+  const destDir = resolve(bundleRoot, plugin.releaseDirName);
   cpSync(srcDir, destDir, { recursive: true });
 }
 
-cpSync(resolve(repoRoot, "examples", "configs"), resolve(bundleRoot, "examples", "configs"), { recursive: true });
+for (const sibling of siblingPlugins) {
+  const srcDir = resolve(workspaceRoot, sibling.repoDir, "dist");
+  if (!existsSync(srcDir)) {
+    continue;
+  }
+  const destDir = resolve(bundleRoot, sibling.releaseDirName);
+  cpSync(srcDir, destDir, { recursive: true });
+}
+
+mkdirSync(resolve(bundleRoot, "examples", "configs"), { recursive: true });
+for (const file of [
+  "bamdra-memory.local.json",
+  "openclaw.plugins.bamdra-memory.local.merge.json",
+  "openclaw.plugins.bamdra-memory.suite.merge.json",
+]) {
+  cpSync(
+    resolve(repoRoot, "examples", "configs", file),
+    resolve(bundleRoot, "examples", "configs", file),
+  );
+}
 cpSync(resolve(repoRoot, "skills"), resolve(bundleRoot, "skills"), { recursive: true });
 cpSync(resolve(repoRoot, "LICENSE"), resolve(bundleRoot, "LICENSE"));
 cpSync(resolve(repoRoot, "README.md"), resolve(bundleRoot, "README.md"));
@@ -39,15 +71,26 @@ cpSync(resolve(repoRoot, "docs", "en", "installation.md"), resolve(bundleRoot, "
 writeFileSync(
   resolve(bundleRoot, "RELEASE.txt"),
   [
-    `openclaw-topic-memory ${version}`,
+    `bamdra-openclaw-memory ${version}`,
     "",
     "Contents:",
-    "- bamdra-memory-context-engine/",
-    "- bamdra-memory-tools/",
+    "- bamdra-openclaw-memory/",
+    "- bamdra-user-bind/",
+    "- bamdra-memory-vector/ (optional enhancement)",
     "- examples/configs/",
     "- skills/",
     "- INSTALL.md",
     "- CHANGELOG.md",
+    "",
+    "Supported install paths:",
+    "1. openclaw plugins install @bamdra/bamdra-openclaw-memory",
+    "2. manual install from this release bundle",
+    "",
+    "Required dependency for production use:",
+    "- install bamdra-user-bind so memory is scoped by real user identity instead of raw sender ids",
+    "",
+    "Optional enhancement:",
+    "- install bamdra-memory-vector to add lightweight semantic retrieval",
     "",
     "For installation details, read INSTALL.md first.",
     "",
@@ -55,8 +98,8 @@ writeFileSync(
 );
 
 const archives = [
-  resolve(outDir, `openclaw-topic-memory-${version}.tar.gz`),
-  resolve(outDir, `openclaw-topic-memory-${version}.zip`),
+  resolve(outDir, `bamdra-openclaw-memory-${version}.tar.gz`),
+  resolve(outDir, `bamdra-openclaw-memory-${version}.zip`),
 ];
 
 run(["tar", "-czf", archives[0], "-C", outDir, basename(bundleRoot)], repoRoot, false);

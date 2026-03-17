@@ -49,7 +49,7 @@ The point is to describe when memory should be used, not to explain implementati
 
 If you maintain a local memory-operator skill, keep it thin, but make the decision policy explicit instead of turning it into a mere tool list.
 
-This is an optional behavioral layer, not a runtime requirement for `bamdra-memory` itself:
+This is an optional behavioral layer, not a runtime requirement for `bamdra-memory` itself. The plugin bundle ships a recommended copy, but current OpenClaw builds still require explicit `agent.skills` binding:
 
 ```md
 ---

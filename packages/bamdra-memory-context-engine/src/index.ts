@@ -24,6 +24,8 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const ENGINE_GLOBAL_KEY = "__OPENCLAW_BAMDRA_MEMORY_CONTEXT_ENGINE__";
+const USER_BIND_GLOBAL_KEY = "__OPENCLAW_BAMDRA_USER_BIND__";
+const VECTOR_GLOBAL_KEY = "__OPENCLAW_BAMDRA_MEMORY_VECTOR__";
 const DEFAULT_DB_PATH = join(
   homedir(),
   ".openclaw",
@@ -33,9 +35,9 @@ const DEFAULT_DB_PATH = join(
 
 function logMemoryEvent(event: string, details: Record<string, unknown> = {}): void {
   try {
-    console.info("[bamdra-memory]", event, JSON.stringify(details));
+    console.info("[bamdra-openclaw-memory]", event, JSON.stringify(details));
   } catch {
-    console.info("[bamdra-memory]", event);
+    console.info("[bamdra-openclaw-memory]", event);
   }
 }
 
@@ -132,7 +134,7 @@ export function createContextEngineMemoryV2Plugin(
   let hooksRegistered = false;
 
   const plugin: ContextEngineMemoryV2Plugin = {
-    name: "bamdra-memory-context-engine",
+    name: "bamdra-openclaw-memory",
     type: "context-engine",
     slot: "memory" as const,
     capabilities: ["memory"],
@@ -246,6 +248,7 @@ export function createContextEngineMemoryV2Plugin(
       }
 
       const now = new Date().toISOString();
+      const userId = getResolvedUserId(sessionId);
       await cache.setSessionState(sessionId, {
         activeTopicId: topicId,
         updatedAt: now,
@@ -260,6 +263,7 @@ export function createContextEngineMemoryV2Plugin(
       await store.upsertTopic(updatedTopic);
       await store.upsertSessionState({
         sessionId,
+        userId,
         activeTopicId: topicId,
         lastCompactedAt: previousState?.lastCompactedAt ?? null,
         lastTurnId: previousState?.lastTurnId ?? null,
@@ -277,10 +281,15 @@ export function createContextEngineMemoryV2Plugin(
       const resolvedTopicId = args.topicId ?? sessionState?.activeTopicId ?? null;
       const resolvedTopic =
         resolvedTopicId != null ? await store.getTopic(resolvedTopicId) : null;
+      const userId = getResolvedUserId(args.sessionId);
       const normalizedScope = normalizeFactScope(args.scope, args.sessionId);
       const scope =
         normalizedScope ??
-        (resolvedTopic != null ? `topic:${resolvedTopic.id}` : "shared");
+        (resolvedTopic != null
+          ? `topic:${resolvedTopic.id}`
+          : userId != null
+            ? `user:${userId}`
+            : "shared");
       const tags = dedupeTextItems([
         ...(resolvedTopic?.labels ?? []),
         ...(args.tags ?? []),
@@ -307,6 +316,15 @@ export function createContextEngineMemoryV2Plugin(
       if (resolvedTopic) {
         await refreshTopicSummary(store, summaryRefresher, config, resolvedTopic.id, now);
       }
+      pushVectorMemoryRecord({
+        userId,
+        sessionId: args.sessionId,
+        topicId: resolvedTopic?.id ?? null,
+        sourcePath: join("user", userId ?? "shared", "facts", `${args.key}.md`),
+        title: args.key,
+        text: args.value,
+        tags,
+      });
 
       logMemoryEvent("save-fact", {
         sessionId: args.sessionId,
@@ -344,6 +362,7 @@ export function createContextEngineMemoryV2Plugin(
       );
       await store.upsertSessionState({
         sessionId: args.sessionId,
+        userId: getResolvedUserId(args.sessionId),
         activeTopicId: sessionState?.activeTopicId ?? topic.id,
         lastCompactedAt: now,
         lastTurnId: sessionState?.lastTurnId ?? null,
@@ -367,21 +386,31 @@ export function createContextEngineMemoryV2Plugin(
       const sessionState = await resolveSessionState(store, cache, args.sessionId);
       const limit = args.limit ?? 5;
       const resolvedTopicId = args.topicId ?? sessionState?.activeTopicId ?? null;
+      const userId = getResolvedUserId(args.sessionId);
       const [topics, facts] = await Promise.all([
         store.searchTopics(args.sessionId, args.query, limit),
         store.searchFacts({
           sessionId: args.sessionId,
+          userId,
           query: args.query,
           topicId: resolvedTopicId,
           limit,
         }),
       ]);
+      const vectors = searchVectorMemory({
+        query: args.query,
+        userId,
+        topicId: resolvedTopicId,
+        limit,
+      });
 
       return {
         sessionId: args.sessionId,
+        userId,
         query: args.query,
         topics,
         facts,
+        vectors,
       };
     },
     async routeTopic(sessionId: string, text: string): Promise<TopicRoutingDecision> {
@@ -403,6 +432,7 @@ export function createContextEngineMemoryV2Plugin(
         sessionState?.activeTopicId != null
           ? await store.getTopic(sessionState.activeTopicId)
           : null;
+      const userId = getResolvedUserId(sessionId);
       const recentMessages =
         topic != null
           ? await store.listRecentMessagesForTopic(
@@ -413,6 +443,7 @@ export function createContextEngineMemoryV2Plugin(
       const alwaysFacts = await store.listFactsByScope("global");
       const sharedFacts = await store.listFactsByScope("shared");
       const sessionFacts = await store.listFactsByScope(`session:${sessionId}`);
+      const userFacts = userId != null ? await store.listFactsByScope(`user:${userId}`) : [];
       const scopedTopicFacts =
         topic != null ? await store.listFactsByScope(`topic:${topic.id}`) : [];
       const labelFacts =
@@ -424,7 +455,7 @@ export function createContextEngineMemoryV2Plugin(
         sessionId,
         topic,
         recentMessages,
-        alwaysFacts: dedupeFacts([...alwaysFacts, ...sharedFacts, ...sessionFacts]),
+        alwaysFacts: dedupeFacts([...alwaysFacts, ...sharedFacts, ...sessionFacts, ...userFacts]),
         topicFacts: dedupeFacts([...scopedTopicFacts, ...labelFacts]),
       });
     },
@@ -444,6 +475,7 @@ export function createContextEngineMemoryV2Plugin(
       });
 
       const now = new Date().toISOString();
+      const userId = getResolvedUserId(sessionId);
       const topicId =
         decision.action === "spawn"
           ? createTopicId(sessionId, text)
@@ -451,7 +483,7 @@ export function createContextEngineMemoryV2Plugin(
       const messageId = randomUUID();
       const topicRecord =
         decision.action === "spawn"
-          ? createSpawnedTopic(sessionId, topicId, text, now, persistedState?.activeTopicId ?? null)
+          ? createSpawnedTopic(sessionId, userId, topicId, text, now, persistedState?.activeTopicId ?? null)
           : await store.getTopic(topicId);
 
       if (!topicRecord) {
@@ -463,6 +495,7 @@ export function createContextEngineMemoryV2Plugin(
       } else {
         await store.upsertTopic({
           ...topicRecord,
+          userId,
           status: "active",
           openLoops: mergeOpenLoops(topicRecord.openLoops, text),
           lastActiveAt: now,
@@ -472,6 +505,9 @@ export function createContextEngineMemoryV2Plugin(
       const messageRecord: MessageRecord = {
         id: messageId,
         sessionId,
+        userId,
+        channelType: getResolvedChannelType(sessionId),
+        senderOpenId: getResolvedSenderOpenId(sessionId),
         turnId: messageId,
         parentTurnId: persistedState?.lastTurnId ?? null,
         role: "user",
@@ -516,6 +552,15 @@ export function createContextEngineMemoryV2Plugin(
       }
 
       await refreshTopicSummary(store, summaryRefresher, config, topicId, now);
+      pushVectorMemoryRecord({
+        userId,
+        sessionId,
+        topicId,
+        sourcePath: join("user", userId ?? "shared", "topics", topicId, `${messageId}.md`),
+        title: deriveTopicTitle(text),
+        text,
+        tags: dedupeTextItems(topicRecord.labels),
+      });
 
       await cache.setSessionState(sessionId, {
         activeTopicId: topicId,
@@ -524,6 +569,7 @@ export function createContextEngineMemoryV2Plugin(
 
       await store.upsertSessionState({
         sessionId,
+        userId,
         activeTopicId: topicId,
         lastCompactedAt: persistedState?.lastCompactedAt ?? null,
         lastTurnId: messageId,
@@ -532,6 +578,7 @@ export function createContextEngineMemoryV2Plugin(
 
       logMemoryEvent("route-and-track", {
         sessionId,
+        userId,
         action: decision.action,
         reason: decision.reason,
         topicId,
@@ -567,6 +614,7 @@ function mapCachedStateToSessionState(
 ): SessionStateRecord {
   return {
     sessionId,
+    userId: getResolvedUserId(sessionId),
     activeTopicId: cached.activeTopicId,
     lastCompactedAt: null,
     lastTurnId: null,
@@ -607,12 +655,94 @@ function normalizeFactScope(
   if (normalized === "session") {
     return `session:${sessionId}`;
   }
+  if (normalized === "user") {
+    const userId = getResolvedUserId(sessionId);
+    return userId != null ? `user:${userId}` : null;
+  }
 
   return normalized;
 }
 
+function getResolvedIdentity(sessionId: string): Record<string, unknown> | null {
+  const api = (globalThis as Record<string, unknown>)[USER_BIND_GLOBAL_KEY] as
+    | {
+      getIdentityForSession?(sessionId: string): Record<string, unknown> | null;
+    }
+    | undefined;
+  if (!api?.getIdentityForSession) {
+    return null;
+  }
+  return api.getIdentityForSession(sessionId);
+}
+
+function getResolvedUserId(sessionId: string): string | null {
+  const identity = getResolvedIdentity(sessionId);
+  const userId = identity?.userId;
+  return typeof userId === "string" && userId.trim() ? userId : null;
+}
+
+function getResolvedChannelType(sessionId: string): string | null {
+  const identity = getResolvedIdentity(sessionId);
+  const channelType = identity?.channelType;
+  return typeof channelType === "string" && channelType.trim() ? channelType : null;
+}
+
+function getResolvedSenderOpenId(sessionId: string): string | null {
+  const identity = getResolvedIdentity(sessionId);
+  const senderOpenId = identity?.senderOpenId;
+  return typeof senderOpenId === "string" && senderOpenId.trim() ? senderOpenId : null;
+}
+
+function pushVectorMemoryRecord(args: {
+  userId: string | null;
+  sessionId: string | null;
+  topicId: string | null;
+  sourcePath: string;
+  title: string;
+  text: string;
+  tags?: string[];
+}): void {
+  const api = (globalThis as Record<string, unknown>)[VECTOR_GLOBAL_KEY] as
+    | {
+      upsertMemoryRecord?(args: {
+        userId: string | null;
+        sessionId: string | null;
+        topicId: string | null;
+        sourcePath: string;
+        title: string;
+        text: string;
+        tags?: string[];
+      }): void;
+    }
+    | undefined;
+  api?.upsertMemoryRecord?.(args);
+}
+
+function searchVectorMemory(args: {
+  query: string;
+  userId: string | null;
+  topicId?: string | null;
+  limit?: number;
+}): MemorySearchResult["vectors"] {
+  const api = (globalThis as Record<string, unknown>)[VECTOR_GLOBAL_KEY] as
+    | {
+      search?(args: {
+        query: string;
+        userId: string | null;
+        topicId?: string | null;
+        limit?: number;
+      }): unknown[];
+    }
+    | undefined;
+  if (!api?.search) {
+    return [];
+  }
+  return api.search(args) as MemorySearchResult["vectors"];
+}
+
 function createSpawnedTopic(
   sessionId: string,
+  userId: string | null,
   topicId: string,
   text: string,
   now: string,
@@ -621,6 +751,7 @@ function createSpawnedTopic(
   return {
     id: topicId,
     sessionId,
+    userId,
     title: deriveTopicTitle(text),
     status: "active",
     parentTopicId,
@@ -817,11 +948,11 @@ export function register(api: {
     factory: (config: MemoryV2Config) => ContextEngineMemoryV2Plugin | Promise<ContextEngineMemoryV2Plugin>,
   ) => void;
 }): void {
-  logMemoryEvent("register-context-engine", { id: "bamdra-memory-context-engine" });
+  logMemoryEvent("register-context-engine", { id: "bamdra-openclaw-memory" });
   const plugin = createContextEngineMemoryV2Plugin(api.pluginConfig, api);
   exposeContextEngine(plugin);
   plugin.registerHooks(api);
-  api.registerContextEngine("bamdra-memory-context-engine", async (config) => {
+  api.registerContextEngine("bamdra-openclaw-memory", async (config) => {
     if (config?.store?.path && config.store.path !== plugin.config.store.path) {
       const configuredPlugin = createContextEngineMemoryV2Plugin(config, api);
       await configuredPlugin.setup();
@@ -855,11 +986,11 @@ export async function activate(api: {
     factory: (config: MemoryV2Config) => ContextEngineMemoryV2Plugin | Promise<ContextEngineMemoryV2Plugin>,
   ) => void;
 }): Promise<void> {
-  logMemoryEvent("activate-context-engine", { id: "bamdra-memory-context-engine" });
+  logMemoryEvent("activate-context-engine", { id: "bamdra-openclaw-memory" });
   const plugin = createContextEngineMemoryV2Plugin(api.pluginConfig, api);
   exposeContextEngine(plugin);
   plugin.registerHooks(api);
-  api.registerContextEngine("bamdra-memory-context-engine", async (config) => {
+  api.registerContextEngine("bamdra-openclaw-memory", async (config) => {
     if (config?.store?.path && config.store.path !== plugin.config.store.path) {
       const configuredPlugin = createContextEngineMemoryV2Plugin(config, api);
       await configuredPlugin.setup();

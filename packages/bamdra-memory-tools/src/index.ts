@@ -23,9 +23,9 @@ const DEFAULT_DB_PATH = join(
 
 function logMemoryToolEvent(event: string, details: Record<string, unknown> = {}): void {
   try {
-    console.info("[bamdra-memory-tools]", event, JSON.stringify(details));
+    console.info("[bamdra-openclaw-memory-tools]", event, JSON.stringify(details));
   } catch {
-    console.info("[bamdra-memory-tools]", event);
+    console.info("[bamdra-openclaw-memory-tools]", event);
   }
 }
 
@@ -142,7 +142,7 @@ export function register(api: {
   registerTool<TParams>(definition: ToolDefinition<TParams>): void;
 }): void {
   logMemoryToolEvent("register-tools");
-  registerTools(api);
+  registerMemoryTools(api);
 }
 
 export async function activate(api: {
@@ -153,10 +153,10 @@ export async function activate(api: {
   registerTool<TParams>(definition: ToolDefinition<TParams>): void;
 }): Promise<void> {
   logMemoryToolEvent("activate-tools");
-  registerTools(api);
+  registerMemoryTools(api);
 }
 
-function registerTools(api: ToolsPluginHost): void {
+export function registerMemoryTools(api: ToolsPluginHost): void {
   function asTextResult(value: unknown): ToolTextResult {
     return {
       content: [
@@ -170,8 +170,7 @@ function registerTools(api: ToolsPluginHost): void {
 
   const definitions: Array<Array<ToolDefinition<unknown>>> = [
     createToolDefinitions<MemoryListTopicsArgs>({
-      canonicalName: "memory_list_topics",
-      aliasName: "bamdra_list_topics",
+      name: "memory_list_topics",
       description: "List known topics for a session",
       parameters: {
         type: "object",
@@ -186,8 +185,7 @@ function registerTools(api: ToolsPluginHost): void {
       },
     }, api, asTextResult),
     createToolDefinitions<MemorySwitchTopicArgs>({
-      canonicalName: "memory_switch_topic",
-      aliasName: "bamdra_switch_topic",
+      name: "memory_switch_topic",
       description: "Switch the active topic for a session",
       parameters: {
         type: "object",
@@ -203,8 +201,7 @@ function registerTools(api: ToolsPluginHost): void {
       },
     }, api, asTextResult),
     createToolDefinitions<MemorySaveFactArgs>({
-      canonicalName: "memory_save_fact",
-      aliasName: "bamdra_save_fact",
+      name: "memory_save_fact",
       description: "Persist a pinned memory fact for the current or selected topic",
       parameters: {
         type: "object",
@@ -230,8 +227,7 @@ function registerTools(api: ToolsPluginHost): void {
       },
     }, api, asTextResult),
     createToolDefinitions<MemoryCompactTopicArgs>({
-      canonicalName: "memory_compact_topic",
-      aliasName: "bamdra_compact_topic",
+      name: "memory_compact_topic",
       description: "Force refresh the summary for the current or selected topic",
       parameters: {
         type: "object",
@@ -247,8 +243,7 @@ function registerTools(api: ToolsPluginHost): void {
       },
     }, api, asTextResult),
     createToolDefinitions<MemorySearchArgs>({
-      canonicalName: "memory_search",
-      aliasName: "bamdra_search",
+      name: "memory_search",
       description: "Search topics and durable facts for a session",
       parameters: {
         type: "object",
@@ -277,8 +272,7 @@ function registerTools(api: ToolsPluginHost): void {
 
 function createToolDefinitions<TParams>(
   definition: {
-    canonicalName: string;
-    aliasName: string;
+    name: string;
     description: string;
     parameters: Record<string, unknown>;
     execute(
@@ -289,14 +283,14 @@ function createToolDefinitions<TParams>(
   api: ToolsPluginHost,
   asTextResult: (value: unknown) => ToolTextResult,
 ): ToolDefinition<TParams>[] {
-  return [definition.canonicalName, definition.aliasName].map((name) => ({
-    name,
+  return [{
+    name: definition.name,
     description: definition.description,
     parameters: definition.parameters,
     async execute(invocationId: string, params: TParams) {
       const engine = await resolveContextEngine(api);
       logMemoryToolEvent("tool-execute", {
-        name,
+        name: definition.name,
         invocationId,
         sessionId:
           params && typeof params === "object" && "sessionId" in (params as Record<string, unknown>)
@@ -306,7 +300,7 @@ function createToolDefinitions<TParams>(
       const result = await definition.execute(engine, params);
       return asTextResult(result);
     },
-  }));
+  }];
 }
 
 async function resolveContextEngine(

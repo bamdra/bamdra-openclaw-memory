@@ -15,7 +15,17 @@ import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
+const TABLES = {
+  schemaMigrations: "bamdra_memory_schema_migrations",
+  messages: "bamdra_memory_messages",
+  topics: "bamdra_memory_topics",
+  topicMembership: "bamdra_memory_topic_membership",
+  facts: "bamdra_memory_facts",
+  factTags: "bamdra_memory_fact_tags",
+  contextSnapshots: "bamdra_memory_context_snapshots",
+  sessionState: "bamdra_memory_session_state",
+} as const;
 
 export interface MemorySqliteStoreOptions {
   path: string;
@@ -36,6 +46,7 @@ export class MemorySqliteStore implements PersistentStore {
   async applyMigrations(): Promise<void> {
     const schemaSql = await loadSchemaSql();
     this.db.exec(schemaSql);
+    applyUserIdentityMigrations(this.db);
   }
 
   async close(): Promise<void> {
@@ -45,9 +56,12 @@ export class MemorySqliteStore implements PersistentStore {
   async upsertMessage(record: MessageRecord): Promise<void> {
     this.db
       .prepare(
-        `INSERT INTO messages (
+        `INSERT INTO ${TABLES.messages} (
           id,
           session_id,
+          user_id,
+          channel_type,
+          sender_open_id,
           turn_id,
           parent_turn_id,
           role,
@@ -55,9 +69,12 @@ export class MemorySqliteStore implements PersistentStore {
           text,
           ts,
           raw_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           session_id = excluded.session_id,
+          user_id = excluded.user_id,
+          channel_type = excluded.channel_type,
+          sender_open_id = excluded.sender_open_id,
           turn_id = excluded.turn_id,
           parent_turn_id = excluded.parent_turn_id,
           role = excluded.role,
@@ -69,6 +86,9 @@ export class MemorySqliteStore implements PersistentStore {
       .run(
         record.id,
         record.sessionId,
+        record.userId,
+        record.channelType,
+        record.senderOpenId,
         record.turnId,
         record.parentTurnId,
         record.role,
@@ -82,8 +102,8 @@ export class MemorySqliteStore implements PersistentStore {
   async getSessionState(sessionId: string): Promise<SessionStateRecord | null> {
     const row = this.db
       .prepare(
-        `SELECT session_id, active_topic_id, last_compacted_at, last_turn_id, updated_at
-         FROM session_state
+        `SELECT session_id, user_id, active_topic_id, last_compacted_at, last_turn_id, updated_at
+         FROM ${TABLES.sessionState}
          WHERE session_id = ?`,
       )
       .get(sessionId) as SessionStateRow | undefined;
@@ -94,14 +114,16 @@ export class MemorySqliteStore implements PersistentStore {
   async upsertSessionState(record: SessionStateRecord): Promise<void> {
     this.db
       .prepare(
-        `INSERT INTO session_state (
+        `INSERT INTO ${TABLES.sessionState} (
           session_id,
+          user_id,
           active_topic_id,
           last_compacted_at,
           last_turn_id,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(session_id) DO UPDATE SET
+          user_id = excluded.user_id,
           active_topic_id = excluded.active_topic_id,
           last_compacted_at = excluded.last_compacted_at,
           last_turn_id = excluded.last_turn_id,
@@ -109,6 +131,7 @@ export class MemorySqliteStore implements PersistentStore {
       )
       .run(
         record.sessionId,
+        record.userId,
         record.activeTopicId,
         record.lastCompactedAt,
         record.lastTurnId,
@@ -122,6 +145,7 @@ export class MemorySqliteStore implements PersistentStore {
         `SELECT
           id,
           session_id,
+          user_id,
           title,
           status,
           parent_topic_id,
@@ -131,7 +155,7 @@ export class MemorySqliteStore implements PersistentStore {
           labels_json,
           created_at,
           last_active_at
-         FROM topics
+         FROM ${TABLES.topics}
          WHERE session_id = ?
          ORDER BY last_active_at DESC`,
       )
@@ -146,6 +170,7 @@ export class MemorySqliteStore implements PersistentStore {
         `SELECT
           id,
           session_id,
+          user_id,
           title,
           status,
           parent_topic_id,
@@ -155,7 +180,7 @@ export class MemorySqliteStore implements PersistentStore {
           labels_json,
           created_at,
           last_active_at
-         FROM topics
+         FROM ${TABLES.topics}
          WHERE id = ?`,
       )
       .get(topicId) as TopicRow | undefined;
@@ -166,9 +191,10 @@ export class MemorySqliteStore implements PersistentStore {
   async upsertTopic(record: TopicRecord): Promise<void> {
     this.db
       .prepare(
-        `INSERT INTO topics (
+        `INSERT INTO ${TABLES.topics} (
           id,
           session_id,
+          user_id,
           title,
           status,
           parent_topic_id,
@@ -178,9 +204,10 @@ export class MemorySqliteStore implements PersistentStore {
           labels_json,
           created_at,
           last_active_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           session_id = excluded.session_id,
+          user_id = excluded.user_id,
           title = excluded.title,
           status = excluded.status,
           parent_topic_id = excluded.parent_topic_id,
@@ -194,6 +221,7 @@ export class MemorySqliteStore implements PersistentStore {
       .run(
         record.id,
         record.sessionId,
+        record.userId,
         record.title,
         record.status,
         record.parentTopicId,
@@ -209,7 +237,7 @@ export class MemorySqliteStore implements PersistentStore {
   async upsertTopicMembership(record: TopicMembershipRecord): Promise<void> {
     this.db
       .prepare(
-        `INSERT INTO topic_membership (
+        `INSERT INTO ${TABLES.topicMembership} (
           message_id,
           topic_id,
           score,
@@ -239,7 +267,7 @@ export class MemorySqliteStore implements PersistentStore {
     try {
       this.db
         .prepare(
-          `INSERT INTO facts (
+          `INSERT INTO ${TABLES.facts} (
             id,
             scope,
             category,
@@ -278,10 +306,10 @@ export class MemorySqliteStore implements PersistentStore {
           record.updatedAt,
         );
 
-      this.db.prepare(`DELETE FROM fact_tags WHERE fact_id = ?`).run(record.id);
+      this.db.prepare(`DELETE FROM ${TABLES.factTags} WHERE fact_id = ?`).run(record.id);
 
       const insertTag = this.db.prepare(
-        `INSERT INTO fact_tags (fact_id, tag) VALUES (?, ?)`,
+        `INSERT INTO ${TABLES.factTags} (fact_id, tag) VALUES (?, ?)`,
       );
 
       for (const tag of tags) {
@@ -312,8 +340,8 @@ export class MemorySqliteStore implements PersistentStore {
           f.source_topic_id,
           f.updated_at,
           COALESCE(json_group_array(ft.tag) FILTER (WHERE ft.tag IS NOT NULL), '[]') AS tags_json
-         FROM facts f
-         LEFT JOIN fact_tags ft ON ft.fact_id = f.id
+         FROM ${TABLES.facts} f
+         LEFT JOIN ${TABLES.factTags} ft ON ft.fact_id = f.id
          WHERE f.scope = ?
          GROUP BY
           f.id,
@@ -359,9 +387,9 @@ export class MemorySqliteStore implements PersistentStore {
           f.source_topic_id,
           f.updated_at,
           COALESCE(json_group_array(DISTINCT ft_all.tag) FILTER (WHERE ft_all.tag IS NOT NULL), '[]') AS tags_json
-         FROM facts f
-         JOIN fact_tags ft_match ON ft_match.fact_id = f.id
-         LEFT JOIN fact_tags ft_all ON ft_all.fact_id = f.id
+         FROM ${TABLES.facts} f
+         JOIN ${TABLES.factTags} ft_match ON ft_match.fact_id = f.id
+         LEFT JOIN ${TABLES.factTags} ft_all ON ft_all.fact_id = f.id
          WHERE ft_match.tag IN (${tagPlaceholders})
            AND f.recall_policy IN (${recallPolicyPlaceholders})
          GROUP BY
@@ -398,6 +426,9 @@ export class MemorySqliteStore implements PersistentStore {
           tm.created_at,
           m.id,
           m.session_id,
+          m.user_id,
+          m.channel_type,
+          m.sender_open_id,
           m.turn_id,
           m.parent_turn_id,
           m.role,
@@ -405,8 +436,8 @@ export class MemorySqliteStore implements PersistentStore {
           m.text,
           m.ts,
           m.raw_json
-         FROM topic_membership tm
-         JOIN messages m ON m.id = tm.message_id
+         FROM ${TABLES.topicMembership} tm
+         JOIN ${TABLES.messages} m ON m.id = tm.message_id
          WHERE tm.topic_id = ?
          ORDER BY m.ts DESC
          LIMIT ?`,
@@ -441,7 +472,7 @@ export class MemorySqliteStore implements PersistentStore {
           labels_json,
           created_at,
           last_active_at
-         FROM topics
+         FROM ${TABLES.topics}
          WHERE session_id = ?
            AND (
              lower(title) LIKE ? ESCAPE '\\'
@@ -461,6 +492,7 @@ export class MemorySqliteStore implements PersistentStore {
 
   async searchFacts(args: {
     sessionId: string;
+    userId?: string | null;
     query: string;
     limit: number;
     topicId?: string | null;
@@ -473,6 +505,7 @@ export class MemorySqliteStore implements PersistentStore {
     const likeValue = `%${escapeLike(normalizedQuery)}%`;
     const topicScope = args.topicId ? `topic:${args.topicId}` : null;
     const sessionScope = `session:${args.sessionId}`;
+    const userScope = args.userId ? `user:${args.userId}` : null;
     const rows = this.db
       .prepare(
         `SELECT
@@ -488,15 +521,16 @@ export class MemorySqliteStore implements PersistentStore {
           f.source_topic_id,
           f.updated_at,
           COALESCE(json_group_array(DISTINCT ft_all.tag) FILTER (WHERE ft_all.tag IS NOT NULL), '[]') AS tags_json
-         FROM facts f
-         LEFT JOIN fact_tags ft_match ON ft_match.fact_id = f.id
-         LEFT JOIN fact_tags ft_all ON ft_all.fact_id = f.id
+         FROM ${TABLES.facts} f
+         LEFT JOIN ${TABLES.factTags} ft_match ON ft_match.fact_id = f.id
+         LEFT JOIN ${TABLES.factTags} ft_all ON ft_all.fact_id = f.id
          WHERE (
             f.scope IN ('global', 'shared')
             OR f.scope = ?
             OR f.scope = ?
+            OR f.scope = ?
             OR f.source_topic_id IN (
-              SELECT id FROM topics WHERE session_id = ?
+              SELECT id FROM ${TABLES.topics} WHERE session_id = ? AND (? IS NULL OR user_id = ?)
             )
          )
            AND (
@@ -520,7 +554,19 @@ export class MemorySqliteStore implements PersistentStore {
          ORDER BY f.updated_at DESC
          LIMIT ?`,
       )
-      .all(sessionScope, topicScope, args.sessionId, likeValue, likeValue, likeValue, likeValue, args.limit) as unknown as FactRow[];
+      .all(
+        sessionScope,
+        topicScope,
+        userScope,
+        args.sessionId,
+        args.userId ?? null,
+        args.userId ?? null,
+        likeValue,
+        likeValue,
+        likeValue,
+        likeValue,
+        args.limit,
+      ) as unknown as FactRow[];
 
     return rows
       .map((row) => mapFactSearchResult(row, normalizedQuery))
@@ -548,6 +594,7 @@ export async function loadSchemaSql(): Promise<string> {
 
 interface SessionStateRow {
   session_id: string;
+  user_id: string | null;
   active_topic_id: string | null;
   last_compacted_at: string | null;
   last_turn_id: string | null;
@@ -557,6 +604,7 @@ interface SessionStateRow {
 interface TopicRow {
   id: string;
   session_id: string;
+  user_id: string | null;
   title: string;
   status: TopicRecord["status"];
   parent_topic_id: string | null;
@@ -592,6 +640,9 @@ interface RecentTopicMessageRow {
   created_at: string;
   id: string;
   session_id: string;
+  user_id: string | null;
+  channel_type: string | null;
+  sender_open_id: string | null;
   turn_id: string;
   parent_turn_id: string | null;
   role: MessageRecord["role"];
@@ -604,6 +655,7 @@ interface RecentTopicMessageRow {
 function mapSessionStateRow(row: SessionStateRow): SessionStateRecord {
   return {
     sessionId: row.session_id,
+    userId: row.user_id,
     activeTopicId: row.active_topic_id,
     lastCompactedAt: row.last_compacted_at,
     lastTurnId: row.last_turn_id,
@@ -615,6 +667,7 @@ function mapTopicRow(row: TopicRow): TopicRecord {
   return {
     id: row.id,
     sessionId: row.session_id,
+    userId: row.user_id,
     title: row.title,
     status: row.status,
     parentTopicId: row.parent_topic_id,
@@ -660,6 +713,7 @@ function mapTopicSearchResult(row: TopicRow, normalizedQuery: string): TopicSear
     topic,
     score: scoreTopicSearch(topic, matchReasons),
     matchReasons,
+    source: "topic",
   };
 }
 
@@ -679,6 +733,7 @@ function mapFactSearchResult(row: FactRow, normalizedQuery: string): FactSearchR
     fact,
     score: scoreFactSearch(fact, matchReasons),
     matchReasons,
+    source: "fact",
   };
 }
 
@@ -695,6 +750,9 @@ function mapRecentTopicMessageRow(row: RecentTopicMessageRow): RecentTopicMessag
     message: {
       id: row.id,
       sessionId: row.session_id,
+      userId: row.user_id,
+      channelType: row.channel_type,
+      senderOpenId: row.sender_open_id,
       turnId: row.turn_id,
       parentTurnId: row.parent_turn_id,
       role: row.role,
@@ -762,4 +820,27 @@ function scoreFactSearch(
     score += 1;
   }
   return score;
+}
+
+function applyUserIdentityMigrations(db: DatabaseSync): void {
+  ensureColumn(db, TABLES.messages, "user_id", "TEXT");
+  ensureColumn(db, TABLES.messages, "channel_type", "TEXT");
+  ensureColumn(db, TABLES.messages, "sender_open_id", "TEXT");
+  ensureColumn(db, TABLES.topics, "user_id", "TEXT");
+  ensureColumn(db, TABLES.sessionState, "user_id", "TEXT");
+}
+
+function ensureColumn(
+  db: DatabaseSync,
+  tableName: string,
+  columnName: string,
+  columnSql: string,
+): void {
+  const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{
+    name: string;
+  }>;
+  if (rows.some((row) => row.name === columnName)) {
+    return;
+  }
+  db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnSql}`);
 }

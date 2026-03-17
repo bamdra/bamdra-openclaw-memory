@@ -1,22 +1,22 @@
-# bamdra-memory
+# bamdra-openclaw-memory
 
 Give one OpenClaw session effectively unlimited continuity: no easy amnesia, no topic-switch chaos, and no runaway prompt growth.
 
 Topic-aware memory, bounded context assembly, and durable fact recall for OpenClaw.
 
-`bamdra-memory` helps a single session stay coherent across interruptions, branch naturally across multiple topics, and keep token usage under control by assembling context around the active thread instead of replaying everything.
+`bamdra-openclaw-memory` helps a single session stay coherent across interruptions, branch naturally across multiple topics, and keep token usage under control by assembling context around the active thread instead of replaying everything.
 
 [中文文档](./README.zh-CN.md) | [English Docs](./docs/en/overview.md) | [中文文档目录](./docs/zh-CN/overview.md)
 
 ## What It Feels Like
 
-Without `bamdra-memory`, a long OpenClaw session often feels like this:
+Without `bamdra-openclaw-memory`, a long OpenClaw session often feels like this:
 
 - you start planning a trip, drift into food ideas, then get interrupted by work
 - after helping with the interruption, the assistant no longer holds the earlier context cleanly
 - details that should have stayed obvious now need to be repeated
 
-With `bamdra-memory`, it feels more like working with a notebook that has tabs:
+With `bamdra-openclaw-memory`, it feels more like working with a notebook that has tabs:
 
 - different threads stay separated in the background
 - important facts can be pinned instead of hoping the model remembers them
@@ -43,7 +43,7 @@ Expected result:
 
 ## What It Is
 
-`bamdra-memory` is an OpenClaw enhancement bundle that turns session memory into a practical runtime system instead of a prompt-only convention.
+`bamdra-openclaw-memory` is the main plugin in the Bamdra OpenClaw memory suite. It turns session memory into a practical runtime system instead of a prompt-only convention.
 
 It gives OpenClaw:
 
@@ -51,10 +51,12 @@ It gives OpenClaw:
 - short, focused context for the current topic
 - durable fact recall for paths, decisions, constraints, and references
 - explicit memory tools when the agent needs manual control
+- one unified plugin install path instead of separate engine and tools packages
+- strong integration points for `bamdra-user-bind` and `bamdra-memory-vector`
 
 ## Why People Install It
 
-People usually install `bamdra-memory` for one of these reasons:
+People usually install `bamdra-openclaw-memory` for one of these reasons:
 
 - they run long sessions with many interruptions and topic changes
 - they want the assistant to remember stable facts without repeating them every hour
@@ -69,12 +71,11 @@ People usually install `bamdra-memory` for one of these reasons:
 - Support both implicit topic recovery and explicit topic control inside one session.
 - Preserve agent and user isolation boundaries.
 - Default to lightweight local deployment.
-- Keep Redis optional and cache-only.
 - Keep OpenClaw-facing plugin code thin.
 
 ## Isolation Boundaries
 
-`bamdra-memory` is not designed as a global shared memory pool.
+`bamdra-openclaw-memory` is not designed as a global shared memory pool.
 
 - memory is isolated across agents by default
 - memory is isolated across users and sessions by default
@@ -95,8 +96,10 @@ For open source users, the right mental model is "continuity within the right bo
   Use `memory_list_topics`, `memory_switch_topic`, `memory_save_fact`, `memory_compact_topic`, and `memory_search`.
 - `Restart recovery`
   Reconstruct active state from SQLite for the same agent and session after process restarts.
-- `Optional Redis cache`
-  Share hot session state across processes without changing the persistence model.
+- `Identity-aware memory`
+  Upgrade from session-only continuity to user-aware memory boundaries when `bamdra-user-bind` is installed.
+- `Optional semantic recall`
+  Auto-detect `bamdra-memory-vector` and combine text retrieval with vector-style recall.
 
 ## Before / After
 
@@ -137,15 +140,29 @@ For open source users, the right mental model is "continuity within the right bo
 - Node.js 22.x or newer
 - a writable `~/.openclaw/` directory
 
-## Quick Start For Most Users
+## Install With npm Or OpenClaw CLI
 
-Most users should use the prebuilt release package instead of building from source.
+If your OpenClaw install supports plugin installation from npm, this is the simplest path.
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+openclaw plugins install @bamdra/bamdra-user-bind
+mkdir -p ~/.openclaw/memory
+```
+
+Then bind the plugin in `~/.openclaw/openclaw.json` using `bamdra-openclaw-memory` for both the `memory` and `contextEngine` slots.
+
+`bamdra-user-bind` should be treated as the required identity layer for production use. It prevents memory from being keyed only by raw channel sender IDs, improves cross-session continuity for the same real user, and reduces the risk of identity drift in Feishu and other multi-channel environments.
+
+## Install From Release Package
+
+Use this if you prefer a manual or offline install path.
 
 1. Download the latest release archive from GitHub Releases.
 2. Unzip it.
-3. Copy these folders into `~/.openclaw/extensions/`:
-   - `bamdra-memory-context-engine`
-   - `bamdra-memory-tools`
+3. Copy this folder into `~/.openclaw/extensions/`:
+   - `bamdra-openclaw-memory`
+   - `bamdra-user-bind`
 4. Create the SQLite directory:
 
 ```bash
@@ -154,13 +171,13 @@ mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
 
 5. Merge the config from one of these examples into `~/.openclaw/openclaw.json`:
    - [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-   - [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
+   - [openclaw.plugins.bamdra-memory.suite.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
 6. Restart OpenClaw.
 
-The plugin directories OpenClaw should load are:
+The plugin directory OpenClaw should load is:
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
+- `~/.openclaw/extensions/bamdra-user-bind`
 
 For a step-by-step release install flow, read:
 
@@ -172,23 +189,21 @@ For a step-by-step release install flow, read:
 If you want to build from source:
 
 ```bash
-git clone git@github.com:bamdra/openclaw-topic-memory.git
-cd openclaw-topic-memory
+git clone git@github.com:bamdra/bamdra-openclaw-memory.git
+cd bamdra-openclaw-memory
 pnpm install
 pnpm build
 pnpm test
 mkdir -p ~/.openclaw/memory
 ```
 
-Then copy the built plugin folders from:
+Then copy the built plugin folder from:
 
-- `./bamdra-memory/plugins/bamdra-memory-context-engine`
-- `./bamdra-memory/plugins/bamdra-memory-tools`
+- `./plugins/bamdra-memory`
 
 into:
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
 
 ## Quick Demo
 
@@ -217,7 +232,7 @@ What you should notice:
 
 ### Do I need Redis?
 
-No. SQLite plus the in-process cache is the default and recommended setup for most users.
+No. Redis support has been removed from the public suite. SQLite plus the in-process cache is the default and recommended setup.
 
 ### Do I need to manually switch topics?
 
@@ -239,10 +254,10 @@ pnpm test
 
 The current release candidate has been verified against these runtime issues:
 
-- `memory` slot binding to `bamdra-memory-context-engine`
+- `memory` slot binding to `bamdra-openclaw-memory`
+- compatibility `contextEngine` slot binding to `bamdra-openclaw-memory`
 - explicit denial of built-in `memory-core`
-- tool-side fallback bootstrap when the runtime engine is not shared across processes
-- explicit registration for both `memory_*` and `bamdra_*` tool names
+- unified runtime registration for both the context engine and the explicit `memory_*` tools
 - SQLite write path and restart recovery
 
 ## Documentation
@@ -269,7 +284,6 @@ The current release candidate has been verified against these runtime issues:
 - [Data Model](./docs/data-model.md)
 - [Configuration](./docs/configuration.md)
 - [Runtime Integration Notes](./docs/openclaw-runtime-integration.md)
-- [Memory Tools](./docs/bamdra-memory-tools.md)
 
 ## Current Status
 

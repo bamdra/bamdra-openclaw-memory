@@ -1,12 +1,12 @@
 {
   "name": "@openclaw-enhanced/bamdra-memory-context-engine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "bundle": "tsup && cp ../../packages/memory-sqlite/src/schema.sql ./dist/ && node ../../../scripts/prepare-plugin-dist.mjs bamdra-memory-context-engine"
+    "bundle": "node ../../scripts/run-local-bin.mjs tsup && cp ../../packages/memory-sqlite/src/schema.sql ./dist/ && node ../../scripts/prepare-plugin-dist.mjs bamdra-memory-context-engine"
   },
   "openclaw": {
     "id": "bamdra-memory-context-engine",

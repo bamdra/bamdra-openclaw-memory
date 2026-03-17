@@ -21,9 +21,6 @@
       "path": "../../packages/memory-cache-memory"
     },
     {
-      "path": "../../packages/memory-cache-redis"
-    },
-    {
       "path": "../../packages/memory-core"
     },
     {

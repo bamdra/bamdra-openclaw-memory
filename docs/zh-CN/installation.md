@@ -1,4 +1,4 @@
-# bamdra-memory 安装指南
+# bamdra-openclaw-memory 安装指南
 
 ## 你最终会得到什么
 
@@ -29,39 +29,53 @@
 - 一个本地可写目录给 SQLite
 - 已经能正常运行的 OpenClaw
 
-## 推荐安装方式
+## 支持的安装方式
 
-对普通用户来说，推荐方式是：
+`bamdra-openclaw-memory` 现在支持两种公开安装路径：
 
-1. 下载已经编译好的 release 版本
-2. 把插件目录放到 `~/.openclaw/extensions/`
-3. 在 `~/.openclaw/openclaw.json` 里启用它们
+1. npm / OpenClaw CLI 安装
+2. release 压缩包手动安装
 
-本地编译更适合开发者。
+如果你的 OpenClaw 环境支持 npm 插件安装，优先推荐这条路径；如果你更偏好手动安装或离线分发，就使用 release 包。
+
+## 通过 npm 或 OpenClaw CLI 安装
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+openclaw plugins install @bamdra/bamdra-user-bind
+mkdir -p ~/.openclaw/memory
+```
+
+然后在 `~/.openclaw/openclaw.json` 中把 `memory` 和 `contextEngine` 都绑定到 `bamdra-openclaw-memory`。
+
+同时安装 `bamdra-user-bind`。这是实际部署中的必装身份层，用来把各个 channel 暴露出来的 sender id 映射成稳定的真实用户边界，避免记忆只按原始 id 分桶。
 
 ## 直接使用 Release 安装
 
 ### 第 1 步：下载并解压
 
 ```bash
-mkdir -p ~/Downloads/openclaw-topic-memory
-cd ~/Downloads/openclaw-topic-memory
-unzip openclaw-topic-memory-release.zip
+mkdir -p ~/Downloads/bamdra-openclaw-memory
+cd ~/Downloads/bamdra-openclaw-memory
+unzip bamdra-openclaw-memory-release.zip
 ```
 
 解压后，你应该能看到至少这些内容：
 
-- `bamdra-memory-context-engine/`
-- `bamdra-memory-tools/`
+- `bamdra-openclaw-memory/`
+- `bamdra-user-bind/`
+- `bamdra-openclaw-memory/skills/bamdra-memory-operator/SKILL.md`
 - `examples/configs/`
 - `INSTALL.md`
+- `README.md`
+- `README.zh-CN.md`
 
 ### 第 2 步：把插件复制到 OpenClaw 目录
 
 ```bash
 mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
-cp -R ./bamdra-memory-context-engine ~/.openclaw/extensions/
-cp -R ./bamdra-memory-tools ~/.openclaw/extensions/
+cp -R ./bamdra-openclaw-memory ~/.openclaw/extensions/
+cp -R ./bamdra-user-bind ~/.openclaw/extensions/
 ```
 
 ### 第 3 步：SQLite 建议路径
@@ -72,10 +86,10 @@ cp -R ./bamdra-memory-tools ~/.openclaw/extensions/
 
 ### 第 4 步：把配置合并到 `~/.openclaw/openclaw.json`
 
-OpenClaw 需要加载这两个目录：
+OpenClaw 需要加载这个目录：
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
+- `~/.openclaw/extensions/bamdra-user-bind`
 
 ```text
 ~/.openclaw/openclaw.json
@@ -88,6 +102,7 @@ OpenClaw 需要加载这两个目录：
 你可以参考：
 
 - [openclaw.plugins.bamdra-memory.local.merge.json](../../examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
+- [openclaw.plugins.bamdra-memory.suite.merge.json](../../examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
 
 核心结构是：
 
@@ -96,18 +111,22 @@ OpenClaw 需要加载这两个目录：
   "plugins": {
     "enabled": true,
     "allow": [
-      "bamdra-memory-context-engine"
+      "bamdra-openclaw-memory"
+    ],
+    "deny": [
+      "memory-core"
     ],
     "load": {
       "paths": [
-        "~/.openclaw/extensions/bamdra-memory-context-engine"
+        "~/.openclaw/extensions/bamdra-openclaw-memory"
       ]
     },
     "slots": {
-      "memory": "bamdra-memory-context-engine"
+      "memory": "bamdra-openclaw-memory",
+      "contextEngine": "bamdra-openclaw-memory"
     },
     "entries": {
-      "bamdra-memory-context-engine": {
+      "bamdra-openclaw-memory": {
         "enabled": true,
         "config": {
           "enabled": true,
@@ -126,17 +145,10 @@ OpenClaw 需要加载这两个目录：
 }
 ```
 
-### 如果你还想让 agent 主动调用记忆工具
+显式记忆工具已经内置在 `bamdra-memory` 这个统一插件里，不需要再额外安装 tools 插件。
 
-再把工具插件也加进去：
-
-- [openclaw.plugins.bamdra-memory-tools.json](../../examples/configs/openclaw.plugins.bamdra-memory-tools.json)
-
-最关键的是：
-
-- `plugins.allow` 里要包含 `bamdra-memory-tools`
-- `plugins.load.paths` 里要加 tools 插件目录
-- `plugins.entries` 里要加 `bamdra-memory-tools`
+release 压缩包和 npm 包也会一并携带推荐的 operator skill，路径是 `skills/bamdra-memory-operator/`。
+但按照当前 OpenClaw 的实际行为，如果你希望这个行为层真的生效，仍然需要在 `openclaw.json` 里把它显式挂到对应 agent 的 `skills` 数组中。插件可以随包分发 skill，但运行时暂时不会自动写入 `agent.skills`。
 
 ### 第 5 步：重启 OpenClaw
 
@@ -165,8 +177,8 @@ OpenClaw 需要加载这两个目录：
 只有在你需要改代码时才建议走这条路：
 
 ```bash
-git clone git@github.com:bamdra/openclaw-topic-memory.git
-cd openclaw-topic-memory
+git clone git@github.com:bamdra/bamdra-openclaw-memory.git
+cd bamdra-openclaw-memory
 pnpm install
 pnpm build
 pnpm test
@@ -174,13 +186,11 @@ pnpm test
 
 然后把：
 
-- `./bamdra-memory/plugins/bamdra-memory-context-engine`
-- `./bamdra-memory/plugins/bamdra-memory-tools`
+- `./plugins/bamdra-memory`
 
 复制到：
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
 
 ## 推荐继续做的一步
 

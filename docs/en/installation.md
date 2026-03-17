@@ -1,4 +1,4 @@
-# bamdra-memory Installation Guide
+# bamdra-openclaw-memory Installation Guide
 
 ## What You Get After Installing It
 
@@ -27,39 +27,53 @@ Install it if any of these sound familiar:
 - a writable local directory for SQLite
 - a working OpenClaw installation
 
-## Recommended Install Model
+## Supported Install Paths
 
-For normal users, the recommended path is:
+`bamdra-openclaw-memory` supports two public install paths:
 
-1. download a compiled release package
-2. place the plugin folders under `~/.openclaw/extensions/`
-3. enable them in `~/.openclaw/openclaw.json`
+1. npm / OpenClaw CLI install
+2. manual install from the packaged release zip
 
-Local building from source is mainly for developers.
+If npm-based plugin install works in your OpenClaw environment, prefer that. If you want a manual or offline path, use the release package.
+
+## Install With npm Or OpenClaw CLI
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+openclaw plugins install @bamdra/bamdra-user-bind
+mkdir -p ~/.openclaw/memory
+```
+
+Then bind the plugin in `~/.openclaw/openclaw.json` with `bamdra-openclaw-memory` as both the `memory` slot target and the compatibility `contextEngine` slot target.
+
+Install `bamdra-user-bind` alongside it. This is the required identity layer for real deployments because it maps channel-facing sender IDs into stable user identities and keeps memory scoped to the right person.
 
 ## Install From Release
 
 ### Step 1: Download and Unzip
 
 ```bash
-mkdir -p ~/Downloads/openclaw-topic-memory
-cd ~/Downloads/openclaw-topic-memory
-unzip openclaw-topic-memory-release.zip
+mkdir -p ~/Downloads/bamdra-openclaw-memory
+cd ~/Downloads/bamdra-openclaw-memory
+unzip bamdra-openclaw-memory-release.zip
 ```
 
 After unzip, you should have a folder that contains at least:
 
-- `bamdra-memory-context-engine/`
-- `bamdra-memory-tools/`
+- `bamdra-openclaw-memory/`
+- `bamdra-user-bind/`
+- `bamdra-openclaw-memory/skills/bamdra-memory-operator/SKILL.md`
 - `examples/configs/`
 - `INSTALL.md`
+- `README.md`
+- `README.zh-CN.md`
 
 ### Step 2: Copy the Plugins Into OpenClaw
 
 ```bash
 mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
-cp -R ./bamdra-memory-context-engine ~/.openclaw/extensions/
-cp -R ./bamdra-memory-tools ~/.openclaw/extensions/
+cp -R ./bamdra-openclaw-memory ~/.openclaw/extensions/
+cp -R ./bamdra-user-bind ~/.openclaw/extensions/
 ```
 
 ### Step 3: Use This SQLite Path
@@ -72,8 +86,8 @@ cp -R ./bamdra-memory-tools ~/.openclaw/extensions/
 
 OpenClaw should load these directories directly:
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
+- `~/.openclaw/extensions/bamdra-user-bind`
 
 ```text
 ~/.openclaw/openclaw.json
@@ -81,11 +95,15 @@ OpenClaw should load these directories directly:
 
 Merge in the plugin settings from the release bundle. Do not replace the whole `plugins` object if you already use other plugins.
 
+The release bundle and npm package also ship the recommended operator skill under `skills/bamdra-memory-operator/`.
+Current OpenClaw builds still require you to bind that skill explicitly in `agent.skills` if you want the behavior layer enabled. Shipping the skill inside the plugin bundle does not yet auto-attach it to agents.
+
 ### Most Common Setup: SQLite + Local Memory Cache
 
 Reference:
 
 - [openclaw.plugins.bamdra-memory.local.merge.json](../../examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
+- [openclaw.plugins.bamdra-memory.suite.merge.json](../../examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
 
 The core shape looks like this:
 
@@ -94,18 +112,22 @@ The core shape looks like this:
   "plugins": {
     "enabled": true,
     "allow": [
-      "bamdra-memory-context-engine"
+      "bamdra-openclaw-memory"
+    ],
+    "deny": [
+      "memory-core"
     ],
     "load": {
       "paths": [
-        "~/.openclaw/extensions/bamdra-memory-context-engine"
+        "~/.openclaw/extensions/bamdra-openclaw-memory"
       ]
     },
     "slots": {
-      "memory": "bamdra-memory-context-engine"
+      "memory": "bamdra-openclaw-memory",
+      "contextEngine": "bamdra-openclaw-memory"
     },
     "entries": {
-      "bamdra-memory-context-engine": {
+      "bamdra-openclaw-memory": {
         "enabled": true,
         "config": {
           "enabled": true,
@@ -123,18 +145,6 @@ The core shape looks like this:
   }
 }
 ```
-
-### If You Also Want Explicit Memory Tools
-
-Add the tool plugin too:
-
-- [openclaw.plugins.bamdra-memory-tools.json](../../examples/configs/openclaw.plugins.bamdra-memory-tools.json)
-
-The important parts are:
-
-- add `bamdra-memory-tools` to `plugins.allow`
-- add the tools plugin directory to `plugins.load.paths`
-- add a `plugins.entries.bamdra-memory-tools` entry
 
 ### Step 5: Restart OpenClaw
 
@@ -163,8 +173,8 @@ If the installation is working, you should see this effect:
 Use this only if you want to modify the code:
 
 ```bash
-git clone git@github.com:bamdra/openclaw-topic-memory.git
-cd openclaw-topic-memory
+git clone git@github.com:bamdra/bamdra-openclaw-memory.git
+cd bamdra-openclaw-memory
 pnpm install
 pnpm build
 pnpm test
@@ -172,13 +182,11 @@ pnpm test
 
 Then copy:
 
-- `./bamdra-memory/plugins/bamdra-memory-context-engine`
-- `./bamdra-memory/plugins/bamdra-memory-tools`
+- `./plugins/bamdra-memory`
 
 into:
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
 
 ## Recommended Next Step
 

@@ -88,10 +88,8 @@ Desired effect:
   lightweight fact extraction heuristics
 - `summary-refresher`
   summary refresh logic
-- `bamdra-memory-context-engine`
-  runtime-facing context engine adapter
-- `bamdra-memory-tools`
-  explicit tool surface
+- `bamdra-memory`
+  unified runtime-facing plugin that owns the memory slot, hooks, and explicit tools
 
 ## Recommended Reading
 

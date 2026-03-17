@@ -6,9 +6,9 @@ import type {
 
 function logCacheEvent(event: string, details: Record<string, unknown> = {}): void {
   try {
-    console.info("[bamdra-memory-cache]", event, JSON.stringify(details));
+    console.info("[bamdra-openclaw-memory-cache]", event, JSON.stringify(details));
   } catch {
-    console.info("[bamdra-memory-cache]", event);
+    console.info("[bamdra-openclaw-memory-cache]", event);
   }
 }
 

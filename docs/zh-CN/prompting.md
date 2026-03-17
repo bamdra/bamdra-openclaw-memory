@@ -49,7 +49,7 @@
 
 如果你要维护一个本地 memory-operator skill，建议保持很薄，但要把“判定原则”写清楚，而不是只写工具清单。
 
-这一步是可选增强，不是运行 `bamdra-memory` 的前置依赖：
+这一步是可选增强，不是运行 `bamdra-memory` 的前置依赖。插件发布包里会附带推荐版 skill，但在当前 OpenClaw 里，仍然需要手动把它挂到 `agent.skills` 才会生效：
 
 ```md
 ---
@@ -64,7 +64,7 @@ description: 当连续性重要时，使用 memory tools；当对话疑似切换
 - 先做语义判断，再选工具，不要把短语匹配当成唯一依据。
 - 当用户明确要记住某事、某个稳定事实后续大概率要复用时，使用 `memory_save_fact`。
 - 当对话疑似回到旧线程时，在要求用户重复之前，先用 `memory_search`。
-- 当用户明确要切换、恢复或隔离某个话题分支时，再使用 `memory_list_topics` / `memory_switch_topic`。
+- 当用户明确要切换、恢复或隔离某个话题分支时，再使用 `memory_list_topics` 或 `memory_switch_topic`。
 - 当某个分支已经明显改向、摘要失真时，使用 `memory_compact_topic`。
 - 保持 agent / user 隔离，不要跨边界取回不该暴露的记忆。
 ```

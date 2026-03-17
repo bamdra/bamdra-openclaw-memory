@@ -19,6 +19,9 @@ export type MessageRole = "user" | "assistant" | "system" | "tool";
 export interface MessageRecord {
   id: string;
   sessionId: string;
+  userId: string | null;
+  channelType: string | null;
+  senderOpenId: string | null;
   turnId: string;
   parentTurnId: string | null;
   role: MessageRole;
@@ -31,6 +34,7 @@ export interface MessageRecord {
 export interface TopicRecord {
   id: string;
   sessionId: string;
+  userId: string | null;
   title: string;
   status: TopicStatus;
   parentTopicId: string | null;
@@ -67,6 +71,7 @@ export interface FactRecord {
 
 export interface SessionStateRecord {
   sessionId: string;
+  userId: string | null;
   activeTopicId: string | null;
   lastCompactedAt: string | null;
   lastTurnId: string | null;
@@ -106,6 +111,7 @@ export interface PersistentStore {
   ): Promise<TopicSearchResult[]>;
   searchFacts(args: {
     sessionId: string;
+    userId?: string | null;
     query: string;
     limit: number;
     topicId?: string | null;
@@ -160,19 +166,37 @@ export interface TopicSearchResult {
   topic: TopicRecord;
   score: number;
   matchReasons: string[];
+  source: "topic";
 }
 
 export interface FactSearchResult {
   fact: FactRecord & { tags: string[] };
   score: number;
   matchReasons: string[];
+  source: "fact";
+}
+
+export interface VectorSearchResult {
+  id: string;
+  userId: string | null;
+  topicId: string | null;
+  sessionId: string | null;
+  sourcePath: string;
+  title: string;
+  text: string;
+  tags: string[];
+  score: number;
+  matchReasons: string[];
+  source: "vector";
 }
 
 export interface MemorySearchResult {
   sessionId: string;
+  userId: string | null;
   query: string;
   topics: TopicSearchResult[];
   facts: FactSearchResult[];
+  vectors: VectorSearchResult[];
 }
 
 export interface AssembledContext {

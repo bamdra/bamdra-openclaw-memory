@@ -1,0 +1,65 @@
+{
+  "name": "@bamdra/bamdra-openclaw-memory",
+  "version": "0.3.1",
+  "description": "Unified topic-aware memory plugin for OpenClaw with durable SQLite recall and bounded context growth.",
+  "license": "MIT",
+  "homepage": "https://www.bamdra.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bamdra/bamdra-openclaw-memory.git",
+    "directory": "plugins/bamdra-memory"
+  },
+  "bugs": {
+    "url": "https://github.com/bamdra/bamdra-openclaw-memory/issues"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "openclaw.plugin.json",
+    "README.md",
+    "skills"
+  ],
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "memory",
+    "topic-memory",
+    "sqlite",
+    "ai-agent"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "bundle": "node ../../scripts/run-local-bin.mjs tsup && cp ../../packages/memory-sqlite/src/schema.sql ./dist/ && node ../../scripts/prepare-plugin-dist.mjs bamdra-openclaw-memory",
+    "prepublishOnly": "pnpm run bundle"
+  },
+  "openclaw": {
+    "id": "bamdra-openclaw-memory",
+    "type": "context-engine",
+    "slot": "memory",
+    "capabilities": [
+      "memory"
+    ],
+    "manifest": "./openclaw.plugin.json",
+    "extensions": [
+      "./dist/index.js"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^24.5.2"
+  }
+}

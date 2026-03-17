@@ -88,10 +88,8 @@
   轻量事实提取器
 - `summary-refresher`
   topic 摘要刷新器
-- `bamdra-memory-context-engine`
-  面向运行时的 context engine 适配层
-- `bamdra-memory-tools`
-  显式工具层
+- `bamdra-memory`
+  统一的运行时插件，同时负责 memory slot、hooks 和显式工具
 
 ## 建议阅读顺序
 

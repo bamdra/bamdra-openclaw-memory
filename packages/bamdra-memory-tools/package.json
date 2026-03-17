@@ -1,12 +1,12 @@
 {
   "name": "@openclaw-enhanced/bamdra-memory-tools",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-  "bundle": "tsup && node ../../../scripts/prepare-plugin-dist.mjs bamdra-memory-tools"
+    "bundle": "node ../../scripts/run-local-bin.mjs tsup && cp ../../packages/memory-sqlite/src/schema.sql ./dist/ && node ../../scripts/prepare-plugin-dist.mjs bamdra-memory-tools"
   },
   "openclaw": {
     "id": "bamdra-memory-tools",

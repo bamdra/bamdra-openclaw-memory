@@ -8,9 +8,6 @@
       "path": "./packages/memory-cache-memory"
     },
     {
-      "path": "./packages/memory-cache-redis"
-    },
-    {
       "path": "./packages/topic-router"
     },
     {
@@ -26,10 +23,13 @@
       "path": "./packages/memory-sqlite"
     },
     {
-      "path": "./plugins/bamdra-memory-context-engine"
+      "path": "./packages/bamdra-memory-context-engine"
     },
     {
-      "path": "./plugins/bamdra-memory-tools"
+      "path": "./packages/bamdra-memory-tools"
+    },
+    {
+      "path": "./plugins/bamdra-memory"
     }
   ]
 }

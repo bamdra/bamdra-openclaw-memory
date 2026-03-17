@@ -2,14 +2,18 @@
   "plugins": {
     "enabled": true,
     "allow": [
-      "bamdra-openclaw-memory"
+      "bamdra-openclaw-memory",
+      "bamdra-user-bind",
+      "bamdra-memory-vector"
     ],
     "deny": [
       "memory-core"
     ],
     "load": {
       "paths": [
-        "~/.openclaw/extensions/bamdra-openclaw-memory"
+        "~/.openclaw/extensions/bamdra-openclaw-memory",
+        "~/.openclaw/extensions/bamdra-user-bind",
+        "~/.openclaw/extensions/bamdra-memory-vector"
       ]
     },
     "slots": {
@@ -38,6 +42,25 @@
             "alwaysFactLimit": 12,
             "topicFactLimit": 16
           }
+        }
+      },
+      "bamdra-user-bind": {
+        "enabled": true,
+        "config": {
+          "enabled": true,
+          "localStorePath": "~/.openclaw/data/bamdra-user-bind",
+          "exportPath": "~/.openclaw/data/bamdra-user-bind/exports",
+          "cacheTtlMs": 1800000,
+          "adminAgents": []
+        }
+      },
+      "bamdra-memory-vector": {
+        "enabled": false,
+        "config": {
+          "enabled": false,
+          "markdownRoot": "~/.openclaw/memory/vector/markdown",
+          "indexPath": "~/.openclaw/memory/vector/index.json",
+          "dimensions": 64
         }
       }
     }

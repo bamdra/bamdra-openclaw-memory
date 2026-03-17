@@ -1,3 +1,32 @@
 {
-  "extends": "../tsconfig.base.json"
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@openclaw-enhanced/memory-core": [
+        "packages/memory-core/src/index.ts"
+      ],
+      "@openclaw-enhanced/memory-sqlite": [
+        "packages/memory-sqlite/src/index.ts"
+      ],
+      "@openclaw-enhanced/memory-cache-memory": [
+        "packages/memory-cache-memory/src/index.ts"
+      ],
+      "@openclaw-enhanced/topic-router": [
+        "packages/topic-router/src/index.ts"
+      ],
+      "@openclaw-enhanced/context-assembler": [
+        "packages/context-assembler/src/index.ts"
+      ],
+      "@openclaw-enhanced/fact-extractor": [
+        "packages/fact-extractor/src/index.ts"
+      ],
+      "@openclaw-enhanced/summary-refresher": [
+        "packages/summary-refresher/src/index.ts"
+      ],
+      "@openclaw-enhanced/bamdra-memory-context-engine": [
+        "packages/bamdra-memory-context-engine/src/index.ts"
+      ]
+    }
+  }
 }

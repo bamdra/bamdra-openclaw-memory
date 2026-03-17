@@ -5,9 +5,9 @@ description: Use bamdra-memory so OpenClaw can remember important facts, switch 
 
 # Bamdra Memory Operator
 
-Use `bamdra-openclaw-memory` tools to preserve continuity without making the conversation feel mechanical.
+Use `bamdra-memory` tools to preserve continuity without making the conversation feel mechanical.
 
-This skill is an optional behavior layer. It improves tool judgment, but the runtime memory chain must still be provided by the plugins themselves.
+This skill is an optional behavior layer. It improves tool judgment, but the runtime memory chain must still be provided by the plugin itself.
 
 ## Operating Goal
 
@@ -82,10 +82,3 @@ When uncertain:
 - Mention it briefly only when it helps the user trust continuity.
 - Use normal conversational language rather than tool narration.
 - Do not explain topic IDs, database actions, or storage internals unless asked.
-
-## User-Facing Examples
-
-- "I kept that preference in mind."
-- "Picking up from the earlier thread, here is the next step."
-- "I found an earlier note about that account."
-- "Let's continue the travel thread and keep the other topic separate."

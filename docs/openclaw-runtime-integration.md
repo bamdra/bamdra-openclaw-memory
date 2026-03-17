@@ -15,35 +15,27 @@ References:
 
 `openclaw-enhanced` uses local plugin directories rather than npm installs.
 
-Use these plugin roots:
+Use this plugin root:
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
 
 Do not replace the whole `plugins` object in `~/.openclaw/openclaw.json` if you already have other plugins enabled. Merge the additional fields into the existing object.
 
 ## Recommended Merge Strategy
 
 1. Ensure `plugins.enabled` is `true`.
-2. Append new ids to `plugins.allow`:
-   - `bamdra-memory-context-engine`
-   - `bamdra-memory-tools`
-3. Append local plugin directories to `plugins.load.paths`.
-4. Set `plugins.slots.contextEngine = "bamdra-memory-context-engine"`.
-5. Set `plugins.slots.memory = "bamdra-memory-context-engine"`.
+2. Append `bamdra-openclaw-memory` to `plugins.allow`.
+3. Add `bamdra-openclaw-memory` to `plugins.load.paths`.
+4. Set `plugins.slots.contextEngine = "bamdra-openclaw-memory"`.
+5. Set `plugins.slots.memory = "bamdra-openclaw-memory"`.
 6. Add `"memory-core"` to `plugins.deny`.
-7. Add `plugins.entries.bamdra-memory-context-engine`.
-8. Add `plugins.entries.bamdra-memory-tools`.
+7. Add `plugins.entries.bamdra-openclaw-memory`.
 
 ## Example Overlays
 
 Local in-memory cache:
 
 - [openclaw.plugins.bamdra-memory.local.merge.json](../examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-
-Tool plugin only:
-
-- [openclaw.plugins.bamdra-memory-tools.json](../examples/configs/openclaw.plugins.bamdra-memory-tools.json)
 
 ## Important Notes
 
@@ -56,8 +48,8 @@ Tool plugin only:
 
 The current bundle includes a few defensive behaviors that matter in production:
 
-- the tools plugin explicitly registers its tools instead of relying on discovery side effects
-- the tools plugin can bootstrap its own engine from the same SQLite config if the runtime does not share a live engine instance across processes
+- the unified plugin explicitly registers its tools instead of relying on discovery side effects
+- the unified plugin owns both the memory slot and the explicit tool aliases in one runtime entrypoint
 - the context engine can recover from partial runtime config and still resolve the SQLite path
 
 ## Scope Boundary

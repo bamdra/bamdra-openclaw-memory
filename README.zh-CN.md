@@ -1,22 +1,22 @@
-# bamdra-memory
+# bamdra-openclaw-memory
 
 让单一 OpenClaw 会话拥有近乎无限的连续沟通能力：不轻易失忆，不怕话题切换，也不让 prompt 无限制膨胀。
 
 面向 OpenClaw 的话题感知记忆、受控上下文装配与持久化事实召回方案。
 
-`bamdra-memory` 让一个会话可以在多条 topic 之间自然切换，在被打断后安静地恢复正确上下文，并通过围绕活跃分支装配 prompt 来控制 token 成本，而不是把整段历史无限堆进去。
+`bamdra-openclaw-memory` 让一个会话可以在多条 topic 之间自然切换，在被打断后安静地恢复正确上下文，并通过围绕活跃分支装配 prompt 来控制 token 成本，而不是把整段历史无限堆进去。
 
 [English README](./README.md) | [English Docs](./docs/en/overview.md) | [中文文档目录](./docs/zh-CN/overview.md)
 
 ## 它实际带来的感觉
 
-没有 `bamdra-memory` 时，长会话通常会出现这些问题：
+没有 `bamdra-openclaw-memory` 时，长会话通常会出现这些问题：
 
 - 本来在聊旅游，后来岔去聊吃什么，又被工作消息打断
 - 处理完工作后，再回到旅游话题时，上下文已经散了
 - 原本应该顺手接上的内容，结果又得重讲一遍
 
-有了 `bamdra-memory` 之后，更像是在用一个带标签页的工作笔记本：
+有了 `bamdra-openclaw-memory` 之后，更像是在用一个带标签页的工作笔记本：
 
 - 不同线程会在后台自动分开
 - 重要事实可以主动钉住，而不是赌模型能一直记住
@@ -42,7 +42,7 @@
 
 ## 它是什么
 
-`bamdra-memory` 是一套 OpenClaw 增强组件，把“记忆”从单纯的提示词约定，升级为结构化的运行时能力。
+`bamdra-openclaw-memory` 是 Bamdra OpenClaw 记忆套件中的主插件，它把“记忆”从单纯的提示词约定，升级为结构化的运行时能力。
 
 它带来的是：
 
@@ -50,6 +50,8 @@
 - 面向当前任务的短上下文
 - 针对路径、约束、决策、引用信息的持久化召回
 - 必要时可由 agent 主动调用的显式记忆工具
+- 一个真正统一的插件安装路径，不再要求分别部署 engine 和 tools
+- 与 `bamdra-user-bind`、`bamdra-memory-vector` 的扩展联动入口
 
 ## 为什么会需要它
 
@@ -68,12 +70,11 @@
 - 支持同一会话内的隐式 topic 恢复与显式 topic 控制
 - 保持 agent 之间、用户之间的记忆隔离
 - 默认适配轻量本地部署
-- Redis 仅作为可选缓存，不作为事实源
 - 让 OpenClaw 侧插件保持轻薄
 
 ## 隔离边界
 
-`bamdra-memory` 的设计前提不是“全局共享记忆”，而是“在正确的会话边界里提供连续性”。
+`bamdra-openclaw-memory` 的设计前提不是“全局共享记忆”，而是“在正确的会话边界里提供连续性”。
 
 - 不同 agent 的记忆默认隔离
 - 不同用户/会话的记忆默认隔离
@@ -94,8 +95,10 @@
   支持 `memory_list_topics`、`memory_switch_topic`、`memory_save_fact`、`memory_compact_topic`、`memory_search`。
 - `重启恢复`
   进程重启后可从 SQLite 恢复同一 agent / 同一会话的活跃状态。
-- `可选 Redis 缓存`
-  在多进程场景共享热状态，但不改变持久化模型。
+- `身份感知记忆`
+  当安装 `bamdra-user-bind` 后，从 session-first 升级为 user-aware 边界。
+- `可选语义召回`
+  探测到 `bamdra-memory-vector` 后，自动把纯文本检索升级为混合召回。
 
 ## 使用前后区别
 
@@ -136,15 +139,29 @@
 - Node.js 22.x 或更新版本
 - 可写入的 `~/.openclaw/` 目录
 
-## 普通用户快速开始
+## 通过 npm 或 OpenClaw CLI 安装
 
-普通用户更适合直接使用 GitHub Releases 里的已编译版本，而不是本地构建源码。
+如果你的 OpenClaw 环境支持从 npm 安装插件，这条路径最简单。
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+openclaw plugins install @bamdra/bamdra-user-bind
+mkdir -p ~/.openclaw/memory
+```
+
+然后在 `~/.openclaw/openclaw.json` 中把 `memory` 和 `contextEngine` 都绑定到 `bamdra-openclaw-memory`。
+
+`bamdra-user-bind` 应该被视为生产使用时的必装身份层。它可以避免记忆仅按原始 channel sender id 分桶，能让同一真实用户在跨 session、跨 channel 时拥有更稳定的连续性，尤其适合飞书这类需要先做身份映射的场景。
+
+## 通过 Release 包手动安装
+
+如果你更偏好手动安装或离线路径，可以走 release 包。
 
 1. 下载最新 release 压缩包
 2. 解压
-3. 把下面两个目录拷贝到 `~/.openclaw/extensions/`：
-   - `bamdra-memory-context-engine`
-   - `bamdra-memory-tools`
+3. 把下面这个目录拷贝到 `~/.openclaw/extensions/`：
+   - `bamdra-openclaw-memory`
+   - `bamdra-user-bind`
 4. 准备 SQLite 目录：
 
 ```bash
@@ -153,13 +170,13 @@ mkdir -p ~/.openclaw/extensions ~/.openclaw/memory
 
 5. 把以下任一示例配置合并进 `~/.openclaw/openclaw.json`：
    - [openclaw.plugins.bamdra-memory.local.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.local.merge.json)
-   - [openclaw.plugins.bamdra-memory.redis.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.redis.merge.json)
+   - [openclaw.plugins.bamdra-memory.suite.merge.json](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
 6. 重启 OpenClaw
 
 OpenClaw 需要加载的插件路径是：
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
+- `~/.openclaw/extensions/bamdra-user-bind`
 
 更完整的 release 安装说明见：
 
@@ -171,8 +188,8 @@ OpenClaw 需要加载的插件路径是：
 如果你要从源码构建：
 
 ```bash
-git clone git@github.com:bamdra/openclaw-topic-memory.git
-cd openclaw-topic-memory
+git clone git@github.com:bamdra/bamdra-openclaw-memory.git
+cd bamdra-openclaw-memory
 pnpm install
 pnpm build
 pnpm test
@@ -181,13 +198,11 @@ mkdir -p ~/.openclaw/memory
 
 然后把构建后的插件目录：
 
-- `./bamdra-memory/plugins/bamdra-memory-context-engine`
-- `./bamdra-memory/plugins/bamdra-memory-tools`
+- `./plugins/bamdra-memory`
 
 复制到：
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
 
 ## 快速效果演示
 
@@ -216,7 +231,7 @@ mkdir -p ~/.openclaw/memory
 
 ### 一定要用 Redis 吗？
 
-不需要。对大多数用户来说，SQLite 加进程内缓存已经够用。
+不需要。公开版本已经移除了 Redis 依赖，默认就是 SQLite 加进程内缓存。
 
 ### 需要手动切换 topic 吗？
 
@@ -224,7 +239,7 @@ mkdir -p ~/.openclaw/memory
 
 ### 重启后还能接上吗？
 
-可以，但这里说的是同一 agent、同一会话边界内的恢复。`bamdra-memory` 并不以跨用户、跨 agent 共享私有记忆为目标。
+可以，但这里说的是同一 agent、同一会话边界内的恢复。`bamdra-openclaw-memory` 并不以跨用户、跨 agent 共享私有记忆为目标。
 
 ## 源码模式下的验证
 
@@ -238,10 +253,10 @@ pnpm test
 
 这次开源前的修复已经覆盖了下面这些关键点：
 
-- `memory` slot 绑定到 `bamdra-memory-context-engine`
+- `memory` slot 绑定到 `bamdra-openclaw-memory`
+- 兼容性 `contextEngine` slot 同时绑定到 `bamdra-openclaw-memory`
 - 显式屏蔽内置 `memory-core`
-- tools 插件在拿不到共享 runtime engine 时可按同一 SQLite 配置自举
-- `memory_*` 与 `bamdra_*` 两套工具名都显式注册
+- 单插件内部同时完成 context engine 和 `memory_*` 工具注册
 - SQLite 写入和重启后恢复链路已实测通过
 
 ## 文档
@@ -268,7 +283,6 @@ pnpm test
 - [Data Model](./docs/data-model.md)
 - [Configuration](./docs/configuration.md)
 - [Runtime Integration Notes](./docs/openclaw-runtime-integration.md)
-- [Memory Tools](./docs/bamdra-memory-tools.md)
 
 ## 当前状态
 

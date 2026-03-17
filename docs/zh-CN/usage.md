@@ -53,15 +53,13 @@
 
 ## 实际上有哪些工具
 
-`bamdra_list_topics`、`bamdra_switch_topic`、`bamdra_save_fact`、`bamdra_compact_topic`、`bamdra_search`
-分别是 `memory_list_topics`、`memory_switch_topic`、`memory_save_fact`、`memory_compact_topic`、`memory_search`
-的别名。
+当前工具集就是下面这 5 个：
 
-也就是说：
-
-- `bamdra_*` 和 `memory_*` 是同一组能力
-- 参数和行为一致
-- 文档里默认用 `memory_*` 说明语义，运行时看到 `bamdra_*` 也表示同一个工具
+- `memory_list_topics`
+- `memory_switch_topic`
+- `memory_save_fact`
+- `memory_compact_topic`
+- `memory_search`
 
 ### 这 5 个工具各自做什么
 

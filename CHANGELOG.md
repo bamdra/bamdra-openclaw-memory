@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.3.1 - 2026-03-17
+
+### Added
+
+- automatic host bootstrap on first plugin load so installation can backfill `tools.allow`, all-agent `skills`, the compatibility `contextEngine` slot, and default runtime config without manual JSON edits
+- bundled skill materialization into `~/.openclaw/skills/bamdra-memory-operator` when the target directory does not already exist
+- regression coverage for host bootstrap idempotency, including the rule that an existing global skill copy must never be overwritten
+
+### Fixed
+
+- fixed the last install-time gap where OpenClaw would load the plugin but leave memory tools and agent skills unbound
+- fixed nested-workspace build reliability by resolving local `typescript` and `tsup` binaries across both standalone and umbrella-repo layouts
+
+## v0.3.0 - 2026-03-17
+
+### Added
+
+- a true unified OpenClaw plugin package, `bamdra-openclaw-memory`, that combines memory-slot registration, runtime hooks, and explicit tools in one installable extension
+- integration coverage for the unified plugin runtime path so slot binding and built-in tool aliases are validated together
+- release packaging for the single-plugin distribution layout
+
+### Changed
+
+- switched the recommended install model from the old context-engine plus tools pair to a single `bamdra-openclaw-memory` plugin directory
+- updated example configs so one plugin now occupies both the `memory` slot and the compatibility `contextEngine` slot while explicitly denying `memory-core`
+- hardened plugin bundling so the distributed `dist/index.js` files inline workspace dependencies and remain runnable outside the monorepo
+- refreshed installation and integration docs to match the one-plugin workflow and clearer 0.3.0 product story
+
+### Fixed
+
+- fixed standalone bundle behavior after release cleanup removed local workspace symlinks
+- fixed nested-repo typecheck stability by giving the public package its own local TypeScript path mapping
+- fixed post-build declaration availability by preserving `tsc -b` outputs while bundling CommonJS runtime files
+
 ## v0.2.0 - 2026-03-16
 
 ### Added
@@ -13,7 +47,7 @@
 
 - fixed OpenClaw 2026.3.13 runtime integration to use the current hook APIs and enabled topic tracking through the active runtime path
 - improved topic routing so explicit new-topic phrases and clear semantic shifts spawn fresh topics more reliably
-- strengthened tool registration by exposing both `memory_*` and `bamdra_*` aliases with the same behavior
+- simplified tool registration to one canonical `memory_*` tool set
 - hardened tool-side runtime resolution so the tools plugin can bootstrap against the same SQLite store even across process boundaries
 - clarified the product boundary as continuity within the correct agent and user isolation boundary, not global shared memory
 
@@ -26,5 +60,5 @@
 
 ### Notes
 
-- `bamdra_*` tools are aliases of the `memory_*` tools and are documented as the same operations
+- the canonical runtime tool set is `memory_*`
 - GitHub Releases are the recommended installation path for most users

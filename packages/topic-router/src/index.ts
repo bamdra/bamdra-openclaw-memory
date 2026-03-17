@@ -30,7 +30,7 @@ export class TopicRouter {
     }
 
     const activeTopic = input.recentTopics.find(
-      (topic) => topic.id === input.activeTopicId,
+      (topic: TopicRecord) => topic.id === input.activeTopicId,
     );
 
     if (hasExplicitNewTopicSignal) {

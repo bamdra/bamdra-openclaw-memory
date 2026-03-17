@@ -6,21 +6,21 @@ Wire `bamdra-memory` into an existing OpenClaw installation without breaking oth
 
 ## Plugin Roots
 
-Add these plugin directories to your OpenClaw plugin load paths:
+Add this plugin directory to your OpenClaw plugin load paths:
 
-- `~/.openclaw/extensions/bamdra-memory-context-engine`
-- `~/.openclaw/extensions/bamdra-memory-tools`
+- `~/.openclaw/extensions/bamdra-openclaw-memory`
 
 ## Required OpenClaw Changes
 
 Merge the following into `~/.openclaw/openclaw.json`:
 
 1. set `plugins.enabled = true`
-2. add `bamdra-memory-context-engine` to `plugins.allow`
-3. optionally add `bamdra-memory-tools` to `plugins.allow`
-4. append both plugin paths to `plugins.load.paths`
-5. set `plugins.slots.memory = "bamdra-memory-context-engine"`
-6. add config entries under `plugins.entries`
+2. add `bamdra-openclaw-memory` to `plugins.allow`
+3. add `"memory-core"` to `plugins.deny`
+4. append the plugin path to `plugins.load.paths`
+5. set `plugins.slots.memory = "bamdra-openclaw-memory"`
+6. set `plugins.slots.contextEngine = "bamdra-openclaw-memory"` for current OpenClaw compatibility
+7. add the config entry under `plugins.entries.bamdra-openclaw-memory`
 
 Do not overwrite the whole `plugins` object if you already use other plugins.
 
@@ -36,12 +36,6 @@ This gives you:
 - in-process memory cache
 - context engine activation
 
-## Tools-Only Overlay
-
-If you only need the tool plugin overlay:
-
-- [openclaw.plugins.bamdra-memory-tools.json](../../examples/configs/openclaw.plugins.bamdra-memory-tools.json)
-
 ## Minimal Config Shape
 
 ```json
@@ -49,20 +43,22 @@ If you only need the tool plugin overlay:
   "plugins": {
     "enabled": true,
     "allow": [
-      "bamdra-memory-context-engine",
-      "bamdra-memory-tools"
+      "bamdra-openclaw-memory"
+    ],
+    "deny": [
+      "memory-core"
     ],
     "load": {
       "paths": [
-        "~/.openclaw/extensions/bamdra-memory-context-engine",
-        "~/.openclaw/extensions/bamdra-memory-tools"
+        "~/.openclaw/extensions/bamdra-openclaw-memory"
       ]
     },
     "slots": {
-      "memory": "bamdra-memory-context-engine"
+      "memory": "bamdra-openclaw-memory",
+      "contextEngine": "bamdra-openclaw-memory"
     },
     "entries": {
-      "bamdra-memory-context-engine": {
+      "bamdra-openclaw-memory": {
         "enabled": true,
         "config": {
           "enabled": true,
@@ -75,10 +71,6 @@ If you only need the tool plugin overlay:
             "maxSessions": 128
           }
         }
-      },
-      "bamdra-memory-tools": {
-        "enabled": true,
-        "config": {}
       }
     }
   }

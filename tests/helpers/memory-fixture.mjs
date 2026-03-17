@@ -2,8 +2,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import contextEnginePlugin from "../../plugins/bamdra-memory-context-engine/dist/index.js";
-import toolsPlugin from "../../plugins/bamdra-memory-tools/dist/index.js";
+import contextEnginePlugin from "../../packages/bamdra-memory-context-engine/dist/index.js";
+import toolsPlugin from "../../packages/bamdra-memory-tools/dist/index.js";
 
 const { createContextEngineMemoryV2Plugin } = contextEnginePlugin;
 const { createToolsMemoryV2Plugin } = toolsPlugin;

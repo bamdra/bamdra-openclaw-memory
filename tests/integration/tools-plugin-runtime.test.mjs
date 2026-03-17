@@ -4,10 +4,10 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { createContextEngineMemoryV2Plugin } from "../../plugins/bamdra-memory-context-engine/dist/index.js";
-import { register as registerToolsPlugin } from "../../plugins/bamdra-memory-tools/dist/index.js";
+import { createContextEngineMemoryV2Plugin } from "../../packages/bamdra-memory-context-engine/dist/index.js";
+import { register as registerToolsPlugin } from "../../packages/bamdra-memory-tools/dist/index.js";
 
-test("tools plugin registers explicit aliases and can bootstrap its own sqlite-backed engine", async () => {
+test("tools plugin registers one canonical tool set and can bootstrap its own sqlite-backed engine", async () => {
   const dir = mkdtempSync(join(tmpdir(), "openclaw-enhanced-tools-"));
   const dbPath = join(dir, "memory.sqlite");
   const registeredTools = new Map();
@@ -24,9 +24,8 @@ test("tools plugin registers explicit aliases and can bootstrap its own sqlite-b
   });
 
   assert.equal(registeredTools.has("memory_save_fact"), true);
-  assert.equal(registeredTools.has("bamdra_save_fact"), true);
 
-  const saveFact = registeredTools.get("bamdra_save_fact");
+  const saveFact = registeredTools.get("memory_save_fact");
   assert.ok(saveFact);
 
   await saveFact.execute("invocation-1", {

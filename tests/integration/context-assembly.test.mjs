@@ -28,7 +28,7 @@ test("context assembly includes open loops and extracted facts", async () => {
 
   const db = new DatabaseSync(dbPath);
   const factRows = db
-    .prepare("select category, key, recall_policy from facts order by updated_at")
+    .prepare("select category, key, recall_policy from bamdra_memory_facts order by updated_at")
     .all();
   db.close();
 

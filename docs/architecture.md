@@ -164,7 +164,7 @@ If the process restarts:
 
 The current implementation has been hardened for OpenClaw runtime behavior observed in real deployments:
 
-- the `memory` slot must be occupied by `bamdra-memory-context-engine`
+- the `memory` slot must be occupied by `bamdra-openclaw-memory`
 - built-in `memory-core` should be denied to avoid slot conflicts
-- tool plugins may run without a shared in-process engine, so they must be able to bootstrap from the same SQLite config
+- the compatibility `contextEngine` slot should also point to `bamdra-openclaw-memory` on current OpenClaw builds
 - explicit tool registration is required to avoid shadowing by built-in tools

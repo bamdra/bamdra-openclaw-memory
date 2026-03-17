@@ -1,0 +1,25 @@
+{
+  "id": "bamdra-openclaw-memory",
+  "type": "context-engine",
+  "kind": "memory",
+  "slot": "memory",
+  "capabilities": ["memory"],
+  "skills": ["./skills"],
+  "name": "Bamdra OpenClaw Memory",
+  "description": "Unified topic-aware memory plugin for OpenClaw",
+  "version": "0.3.1",
+  "main": "./dist/index.js",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": true
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Bamdra Memory"
+    },
+    "store.path": {
+      "label": "SQLite Path",
+      "placeholder": "~/.openclaw/memory/main.sqlite"
+    }
+  }
+}
