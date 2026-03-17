@@ -1,5 +1,7 @@
 # bamdra-openclaw-memory
 
+![Bamdra Animated Logo](./docs/assets/bamdra-logo-animated.svg)
+
 面向 OpenClaw 的 continuity-first 主记忆运行时。
 
 一键安装：
@@ -68,17 +70,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 ## 架构图
 
-```mermaid
-flowchart LR
-  user["用户"] --> bind["bamdra-user-bind"]
-  bind --> memory["bamdra-openclaw-memory"]
-  memory --> vector["bamdra-memory-vector"]
-  bind --> profile["Profile SQLite + Markdown 镜像"]
-  memory --> main["主 SQLite 记忆库"]
-  vector --> kb["私有 / 共享 Markdown 知识库"]
-  memory --> prompt["紧凑上下文"]
-  prompt --> agent["OpenClaw agent"]
-```
+![Bamdra 套件架构图](./docs/assets/architecture-technical-zh.svg)
 
 ## 最佳实践
 

@@ -1,0 +1,111 @@
+<svg width="1600" height="960" viewBox="0 0 1600 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="60" x2="1480" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101526"/>
+      <stop offset="1" stop-color="#070A12"/>
+    </linearGradient>
+    <linearGradient id="line" x1="240" y1="320" x2="1360" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8BF389"/>
+      <stop offset="1" stop-color="#B56EFF"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .orb-a { animation: driftA 9s ease-in-out infinite; transform-origin: 300px 180px; }
+    .orb-b { animation: driftB 11s ease-in-out infinite; transform-origin: 1320px 760px; }
+    .card-a { animation: cardFloat 8s ease-in-out infinite; }
+    .card-b { animation: cardFloat 8s ease-in-out infinite 0.5s; }
+    .card-c { animation: cardFloat 8s ease-in-out infinite 1s; }
+    .card-d { animation: cardFloat 8s ease-in-out infinite 1.5s; }
+    .card-e { animation: cardFloat 8s ease-in-out infinite 2s; }
+    .card-f { animation: cardFloat 8s ease-in-out infinite 2.5s; }
+    .flow-line { stroke-dasharray: 14 14; animation: dashFlow 10s linear infinite; }
+    .pulse-line { animation: pulseGlow 5s ease-in-out infinite; }
+    @keyframes cardFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes dashFlow {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -56; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 1; }
+    }
+    @keyframes driftA {
+      0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.14; }
+      50% { transform: translate(10px, -10px) scale(1.05); opacity: 0.22; }
+    }
+    @keyframes driftB {
+      0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.12; }
+      50% { transform: translate(-12px, 8px) scale(1.04); opacity: 0.2; }
+    }
+  </style>
+  <rect width="1600" height="960" rx="40" fill="url(#bg)"/>
+  <circle class="orb-a" cx="300" cy="180" r="140" fill="#8BF389" fill-opacity="0.14"/>
+  <circle class="orb-b" cx="1320" cy="760" r="150" fill="#B56EFF" fill-opacity="0.12"/>
+
+  <text x="96" y="116" fill="#FFFFFF" font-size="54" font-family="Arial, sans-serif" font-weight="700">Bamdra OpenClaw 记忆套件</text>
+  <text x="96" y="158" fill="#AEB7D3" font-size="24" font-family="Arial, sans-serif">身份、连续性记忆、缓存层、本地知识库，四层闭环。</text>
+
+  <rect class="card-a" x="92" y="252" width="220" height="140" rx="28" fill="#101622" stroke="rgba(255,255,255,0.12)"/>
+  <text x="124" y="302" fill="#CFFFD8" font-size="18" font-family="Arial, sans-serif">输入</text>
+  <text x="124" y="340" fill="#FFFFFF" font-size="28" font-family="Arial, sans-serif" font-weight="700">用户与渠道</text>
+  <text x="124" y="372" fill="#C4CBE0" font-size="18" font-family="Arial, sans-serif">飞书 / Telegram</text>
+
+  <rect class="card-b" x="372" y="208" width="292" height="226" rx="30" fill="#121A2C" stroke="#7FE593"/>
+  <text x="404" y="258" fill="#CFFFD8" font-size="18" font-family="Arial, sans-serif">插件 01</text>
+  <text x="404" y="300" fill="#FFFFFF" font-size="30" font-family="Arial, sans-serif" font-weight="700">user-bind</text>
+  <text x="404" y="344" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">解析真实用户身份</text>
+  <text x="404" y="374" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">维护可编辑画像</text>
+  <text x="404" y="404" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">支持管理员操作</text>
+
+  <rect class="card-c" x="714" y="192" width="332" height="258" rx="30" fill="#17192D" stroke="#C08AFF"/>
+  <text x="748" y="244" fill="#EDD6FF" font-size="18" font-family="Arial, sans-serif">插件 02</text>
+  <text x="748" y="300" fill="#FFFFFF" font-size="28" font-family="Arial, sans-serif" font-weight="700">openclaw-memory</text>
+  <text x="748" y="360" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">保持话题连续</text>
+  <text x="748" y="390" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">写入作用域事实</text>
+  <text x="748" y="420" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">装配紧凑上下文</text>
+
+  <rect class="card-d" x="1098" y="208" width="350" height="226" rx="30" fill="#151B29" stroke="#91D5FF"/>
+  <text x="1132" y="258" fill="#DDF4FF" font-size="18" font-family="Arial, sans-serif">插件 03</text>
+  <text x="1132" y="300" fill="#FFFFFF" font-size="28" font-family="Arial, sans-serif" font-weight="700">memory-vector</text>
+  <text x="1132" y="344" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">索引本地知识文件</text>
+  <text x="1132" y="374" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">优先查本地文档</text>
+  <text x="1132" y="404" fill="#C4CBE0" font-size="20" font-family="Arial, sans-serif">不够再联网</text>
+
+  <path class="flow-line" d="M312 322H372" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+  <path class="flow-line" d="M664 322H714" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+  <path class="flow-line" d="M1046 322H1098" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+
+  <rect class="card-e" x="746" y="510" width="270" height="132" rx="24" fill="#101521" stroke="rgba(255,255,255,0.12)"/>
+  <text x="776" y="560" fill="#FFE0A8" font-size="18" font-family="Arial, sans-serif">缓存层</text>
+  <text x="776" y="590" fill="#FFFFFF" font-size="24" font-family="Arial, sans-serif" font-weight="700">会话缓存</text>
+  <text x="776" y="620" fill="#FFFFFF" font-size="24" font-family="Arial, sans-serif" font-weight="700">与召回缓存</text>
+
+  <rect class="card-f" x="388" y="722" width="272" height="144" rx="24" fill="#0F1420" stroke="rgba(255,255,255,0.12)"/>
+  <text x="418" y="772" fill="#CFFFD8" font-size="18" font-family="Arial, sans-serif">存储 A</text>
+  <text x="418" y="812" fill="#FFFFFF" font-size="30" font-family="Arial, sans-serif" font-weight="700">画像库</text>
+  <text x="418" y="842" fill="#C4CBE0" font-size="18" font-family="Arial, sans-serif">SQLite + Markdown 镜像</text>
+
+  <rect class="card-a" x="744" y="722" width="272" height="144" rx="24" fill="#0F1420" stroke="rgba(255,255,255,0.12)"/>
+  <text x="774" y="772" fill="#EDD6FF" font-size="18" font-family="Arial, sans-serif">存储 B</text>
+  <text x="774" y="812" fill="#FFFFFF" font-size="30" font-family="Arial, sans-serif" font-weight="700">main.sqlite</text>
+  <text x="774" y="842" fill="#C4CBE0" font-size="18" font-family="Arial, sans-serif">消息、话题、长期事实</text>
+
+  <rect class="card-b" x="1100" y="706" width="356" height="176" rx="24" fill="#0F1420" stroke="rgba(255,255,255,0.12)"/>
+  <text x="1130" y="756" fill="#DDF4FF" font-size="18" font-family="Arial, sans-serif">存储 C</text>
+  <text x="1130" y="796" fill="#FFFFFF" font-size="28" font-family="Arial, sans-serif" font-weight="700">knowledge / docs</text>
+  <text x="1130" y="826" fill="#FFFFFF" font-size="28" font-family="Arial, sans-serif" font-weight="700">notes / ideas</text>
+  <text x="1130" y="856" fill="#C4CBE0" font-size="18" font-family="Arial, sans-serif">私有根目录与共享根目录</text>
+
+  <rect class="card-c" x="88" y="730" width="224" height="126" rx="24" fill="#0F1420" stroke="rgba(255,255,255,0.12)"/>
+  <text x="120" y="780" fill="#FFD7F8" font-size="18" font-family="Arial, sans-serif">输出</text>
+  <text x="120" y="820" fill="#FFFFFF" font-size="30" font-family="Arial, sans-serif" font-weight="700">智能体回复</text>
+
+  <path class="pulse-line" d="M518 434V722" stroke="#8BF389" stroke-width="6" stroke-linecap="round"/>
+  <path class="pulse-line" d="M880 450V510" stroke="#C08AFF" stroke-width="6" stroke-linecap="round"/>
+  <path class="pulse-line" d="M880 642V722" stroke="#C08AFF" stroke-width="6" stroke-linecap="round"/>
+  <path class="pulse-line" d="M1272 434V706" stroke="#91D5FF" stroke-width="6" stroke-linecap="round"/>
+  <path class="flow-line" d="M200 730V470C200 448 218 430 240 430H372" stroke="url(#line)" stroke-width="6" stroke-linecap="round"/>
+</svg>

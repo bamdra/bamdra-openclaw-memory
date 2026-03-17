@@ -1,5 +1,7 @@
 # bamdra-openclaw-memory
 
+![Bamdra Animated Logo](./docs/assets/bamdra-logo-animated.svg)
+
 The continuity-first memory runtime for OpenClaw.
 
 Install once:
@@ -68,17 +70,7 @@ and makes local recall happen before unnecessary web lookup.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  user["User"] --> bind["bamdra-user-bind"]
-  bind --> memory["bamdra-openclaw-memory"]
-  memory --> vector["bamdra-memory-vector"]
-  bind --> profile["Profile SQLite + Markdown mirror"]
-  memory --> main["Main SQLite memory store"]
-  vector --> kb["Private / Shared Markdown knowledge"]
-  memory --> prompt["Compact context"]
-  prompt --> agent["OpenClaw agent"]
-```
+![Bamdra Suite Architecture](./docs/assets/architecture-technical-en.svg)
 
 ## Best-practice setup
 

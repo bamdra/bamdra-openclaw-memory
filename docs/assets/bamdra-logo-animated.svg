@@ -1,0 +1,80 @@
+<svg width="720" height="520" viewBox="0 0 720 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="premiumGradient" x1="140" y1="60" x2="580" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="50%" stop-color="#7000FF"/>
+      <stop offset="100%" stop-color="#FF00D6"/>
+    </linearGradient>
+    <linearGradient id="brandWord" x1="80" y1="410" x2="640" y2="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+    <filter id="glow-clean" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <style>
+    .glow-sphere {
+      animation: ambientPulse 6s ease-in-out infinite;
+    }
+    .logo-container {
+      animation: subtleFloat 5s ease-in-out infinite;
+      transform-origin: 280px 180px;
+    }
+    .orbit-group {
+      transform-origin: 280px 110px;
+      animation: orbitalRotate 4s linear infinite;
+    }
+    .satellite-dot {
+      animation: satelliteFlicker 2s ease-in-out infinite;
+    }
+    .brand-name {
+      fill: url(#brandWord);
+      letter-spacing: 0.26em;
+    }
+    .brand-tagline {
+      fill: rgba(255,255,255,0.28);
+      letter-spacing: 0.5em;
+    }
+    @keyframes subtleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes orbitalRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes satelliteFlicker {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.72; transform: scale(0.82); }
+    }
+    @keyframes ambientPulse {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+  </style>
+
+  <g class="logo-container">
+    <g transform="translate(-10,-18) scale(1.18)">
+    <rect x="277.5" y="110" width="5" height="190" rx="2.5" fill="url(#premiumGradient)"/>
+
+    <path d="M272 154 L174 126 C166 123 162 133 168 138 L210 193 L272 208 Z" fill="url(#premiumGradient)" fill-opacity="0.95"/>
+    <path d="M288 154 L386 126 C394 123 398 133 392 138 L350 193 L288 208 Z" fill="url(#premiumGradient)" fill-opacity="0.95"/>
+
+    <path d="M272 222 L198 222 C190 222 186 233 193 239 L232 282 L272 268 Z" fill="url(#premiumGradient)" fill-opacity="0.6"/>
+    <path d="M288 222 L362 222 C370 222 374 233 367 239 L328 282 L288 268 Z" fill="url(#premiumGradient)" fill-opacity="0.6"/>
+
+    <circle cx="280" cy="110" r="4.5" fill="#FFFFFF" filter="url(#glow-clean)"/>
+
+    <g class="orbit-group">
+      <circle cx="280" cy="110" r="18" stroke="white" stroke-opacity="0.04" fill="none"/>
+      <circle cx="298" cy="110" r="2.8" fill="#00F0FF" class="satellite-dot" filter="url(#glow-clean)"/>
+      <path d="M298 110 A 18 18 0 0 1 280 128" stroke="url(#premiumGradient)" stroke-width="1" stroke-opacity="0.24" stroke-linecap="round" fill="none"/>
+    </g>
+    </g>
+  </g>
+
+  <text x="66" y="434" class="brand-name" font-size="86" font-family="Space Grotesk, Outfit, Arial, sans-serif" font-weight="700">BAMDRA</text>
+  <text x="124" y="478" class="brand-tagline" font-size="14" font-family="Outfit, Arial, sans-serif" font-weight="300">EVOLUTION OF INTELLIGENCE</text>
+</svg>
