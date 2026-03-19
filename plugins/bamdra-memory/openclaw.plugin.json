@@ -7,7 +7,7 @@
   "skills": ["./skills"],
   "name": "Bamdra OpenClaw Memory",
   "description": "Unified topic-aware memory plugin for OpenClaw",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "main": "./dist/index.js",
   "configSchema": {
     "type": "object",

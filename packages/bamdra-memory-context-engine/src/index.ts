@@ -188,9 +188,12 @@ export function createContextEngineMemoryV2Plugin(
           const sessionId = getSessionIdFromHookContext(hookContext);
           await backfillResolvedIdentity(store, sessionId);
           const text = getTextFromHookContext(event);
+          const hasMultimodalPayload =
+            containsNonTextualPayload(event) || containsNonTextualPayload(hookContext);
           logMemoryEvent("hook-assemble-received", {
             hasSessionId: Boolean(sessionId),
             hasText: Boolean(text),
+            hasMultimodalPayload,
           });
           if (!sessionId) {
             return;
@@ -216,7 +219,11 @@ export function createContextEngineMemoryV2Plugin(
             })
             : null;
           const assembledWithRecall = knowledgeRecall != null
-            ? mergeLocalKnowledgeRecall(assembled, knowledgeRecall)
+            ? mergeLocalKnowledgeRecall(
+              assembled,
+              knowledgeRecall,
+              config.contextAssembly?.recallMaxChars ?? 900,
+            )
             : assembled;
           logMemoryEvent("hook-assemble-complete", {
             sessionId,
@@ -227,7 +234,12 @@ export function createContextEngineMemoryV2Plugin(
               : knowledgeRecall.vectors.length + knowledgeRecall.facts.length + knowledgeRecall.topics.length,
           });
 
-          return buildBeforePromptBuildResult(assembledWithRecall);
+          return buildBeforePromptBuildResult(
+            assembledWithRecall,
+            hasMultimodalPayload
+              ? config.contextAssembly?.maxCharsWhenMultimodal ?? 1200
+              : config.contextAssembly?.maxChars ?? 4000,
+          );
         });
       } else {
         logMemoryEvent("register-typed-hooks-skipped", { reason: "typed hook registrar unavailable" });
@@ -988,6 +1000,14 @@ function normalizeMemoryConfig(
         inputConfig?.contextAssembly?.includeOpenLoops ?? true,
       alwaysFactLimit: inputConfig?.contextAssembly?.alwaysFactLimit ?? 12,
       topicFactLimit: inputConfig?.contextAssembly?.topicFactLimit ?? 16,
+      maxChars: inputConfig?.contextAssembly?.maxChars ?? 4000,
+      maxCharsWhenMultimodal:
+        inputConfig?.contextAssembly?.maxCharsWhenMultimodal ?? 1200,
+      recentMessageMaxChars:
+        inputConfig?.contextAssembly?.recentMessageMaxChars ?? 1200,
+      maxFactValueChars:
+        inputConfig?.contextAssembly?.maxFactValueChars ?? 280,
+      recallMaxChars: inputConfig?.contextAssembly?.recallMaxChars ?? 900,
     },
   };
 }
@@ -1219,18 +1239,17 @@ function extractTextFromInput(input: unknown): string | null {
 }
 
 function normalizeHookText(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
+  const normalized = extractTextFromStructuredValue(value).trim();
   return normalized ? normalized : null;
 }
 
-function buildBeforePromptBuildResult(assembled: AssembledContext): {
+function buildBeforePromptBuildResult(
+  assembled: AssembledContext,
+  maxChars: number,
+): {
   prependSystemContext?: string;
 } | undefined {
-  const text = assembled.text.trim();
+  const text = trimToLength(assembled.text.trim(), maxChars);
   if (!text) {
     return undefined;
   }
@@ -1269,32 +1288,124 @@ function shouldPreferLocalKnowledgeFirst(text: string): boolean {
 function mergeLocalKnowledgeRecall(
   assembled: AssembledContext,
   search: MemorySearchResult,
+  maxChars: number,
 ): AssembledContext {
   const vectorLines = search.vectors
     .slice(0, 3)
-    .map((item) => `- [vector] ${item.title} (${item.sourcePath}): ${item.text.slice(0, 220)}`);
+    .map((item) => `- [vector] ${trimToLength(item.title, 80)} (${trimToLength(item.sourcePath, 120)}): ${trimToLength(item.text, 180)}`);
   const factLines = search.facts
     .slice(0, 2)
-    .map((item) => `- [fact] ${item.fact.key}: ${item.fact.value}`);
+    .map((item) => `- [fact] ${trimToLength(item.fact.key, 80)}: ${trimToLength(item.fact.value, 140)}`);
   const topicLines = search.topics
     .slice(0, 2)
-    .map((item) => `- [topic] ${item.topic.title}: ${item.topic.summaryShort}`);
+    .map((item) => `- [topic] ${trimToLength(item.topic.title, 80)}: ${trimToLength(item.topic.summaryShort, 140)}`);
   const lines = [...vectorLines, ...factLines, ...topicLines];
   if (lines.length === 0) {
     return assembled;
   }
 
-  const content = [
+  const content = trimToLength([
     "Prefer answering from local memory and knowledge before using web search.",
     ...lines,
-  ].join("\n");
+  ].join("\n"), maxChars);
 
   return {
     ...assembled,
-    text: `[facts]\n${content}\n\n${assembled.text}`.trim(),
+    text: trimToLength(`[facts]\n${content}\n\n${assembled.text}`.trim(), assembled.text.length + maxChars + 32),
     sections: [
       { kind: "facts", content },
       ...assembled.sections,
     ],
   };
+}
+
+function extractTextFromStructuredValue(value: unknown, depth = 0): string {
+  if (depth > 4 || value == null) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => extractTextFromStructuredValue(item, depth + 1))
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  if (typeof value !== "object") {
+    return "";
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const direct = [
+    candidate.text,
+    candidate.input_text,
+    candidate.caption,
+  ]
+    .map((item) => extractTextFromStructuredValue(item, depth + 1))
+    .filter(Boolean);
+  if (direct.length > 0) {
+    return direct.join("\n");
+  }
+
+  return [
+    extractTextFromStructuredValue(candidate.content, depth + 1),
+    extractTextFromStructuredValue(candidate.message, depth + 1),
+    extractTextFromStructuredValue(candidate.input, depth + 1),
+    extractTextFromStructuredValue(candidate.messages, depth + 1),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function containsNonTextualPayload(value: unknown, depth = 0): boolean {
+  if (depth > 4 || value == null) {
+    return false;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item) => containsNonTextualPayload(item, depth + 1));
+  }
+
+  if (typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const typeValue = typeof candidate.type === "string" ? candidate.type.toLowerCase() : "";
+  if (
+    typeValue.includes("image") ||
+    typeValue.includes("audio") ||
+    typeValue.includes("video") ||
+    "image_url" in candidate ||
+    "input_image" in candidate
+  ) {
+    return true;
+  }
+
+  if (typeof candidate.mimeType === "string" && candidate.mimeType.startsWith("image/")) {
+    return true;
+  }
+
+  return Object.values(candidate).some((item) => containsNonTextualPayload(item, depth + 1));
+}
+
+function trimToLength(value: string, maxChars: number): string {
+  if (maxChars <= 0) {
+    return "";
+  }
+
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxChars) {
+    return normalized;
+  }
+
+  if (maxChars <= 3) {
+    return normalized.slice(0, maxChars);
+  }
+
+  return `${normalized.slice(0, maxChars - 3).trimEnd()}...`;
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.3.14 - 2026-03-19
+
+### Fixed
+
+- bounded `before_prompt_build` memory injection so image-plus-text requests no longer get oversized system context from `bamdra-openclaw-memory`
+- added multimodal-aware prompt budgeting that shrinks injected memory context when the inbound payload already contains images or other non-text parts
+- trimmed assembled facts, summaries, recent messages, and local knowledge recall snippets to keep prompt growth predictable without requiring users to clean extensions or rewrite config
+
+### Notes
+
+- this is a smooth in-place upgrade for existing `~/.openclaw/extensions/bamdra-openclaw-memory` installs
+- no memory database reset, package cleanup, or config deletion is required
+- existing installs can keep their current `openclaw.json`; the new guardrails work with defaults even when `contextAssembly` is absent
+
 ## v0.3.1 - 2026-03-17
 
 ### Added

@@ -253,5 +253,10 @@ export interface MemoryV2Config {
     includeOpenLoops?: boolean;
     alwaysFactLimit?: number;
     topicFactLimit?: number;
+    maxChars?: number;
+    maxCharsWhenMultimodal?: number;
+    recentMessageMaxChars?: number;
+    maxFactValueChars?: number;
+    recallMaxChars?: number;
   };
 }

@@ -21,6 +21,11 @@ export async function createMemoryFixture(overrides = {}) {
       alwaysFactLimit: 8,
       topicFactLimit: 8,
       includeOpenLoops: true,
+      maxChars: 4000,
+      maxCharsWhenMultimodal: 1200,
+      recentMessageMaxChars: 1200,
+      maxFactValueChars: 280,
+      recallMaxChars: 900,
     },
     ...overrides,
   });

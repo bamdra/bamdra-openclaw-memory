@@ -99,6 +99,26 @@
             "topicFactLimit": {
               "type": "integer",
               "minimum": 0
+            },
+            "maxChars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxCharsWhenMultimodal": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "recentMessageMaxChars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxFactValueChars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "recallMaxChars": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         }
