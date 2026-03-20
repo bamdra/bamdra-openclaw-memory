@@ -81,7 +81,18 @@ export interface ContextEngineMemoryV2Plugin {
     limit?: number;
   }): Promise<MemorySearchResult>;
   routeTopic(sessionId: string, text: string): Promise<TopicRoutingDecision>;
+  assemble(params: string | { sessionId?: string | null } | null | undefined): Promise<AssembledContext>;
   assembleContext(sessionId: string): Promise<AssembledContext>;
+  ingest(
+    params:
+      | { sessionId?: string | null; text?: string | null; content?: string | null; message?: string | null }
+      | null
+      | undefined,
+  ): Promise<{
+    decision: TopicRoutingDecision;
+    topicId: string;
+    messageId: string;
+  } | null>;
   routeAndTrack(sessionId: string, text: string): Promise<{
     decision: TopicRoutingDecision;
     topicId: string;
@@ -488,6 +499,28 @@ export function createContextEngineMemoryV2Plugin(
         alwaysFacts: dedupeFacts([...alwaysFacts, ...sharedFacts, ...sessionFacts, ...userFacts]),
         topicFacts: dedupeFacts([...scopedTopicFacts, ...labelFacts]),
       });
+    },
+    async assemble(params): Promise<AssembledContext> {
+      const sessionId =
+        typeof params === "string"
+          ? params
+          : typeof params?.sessionId === "string"
+            ? params.sessionId
+            : null;
+      if (!sessionId) {
+        throw new Error("context engine assemble requires a sessionId");
+      }
+      return plugin.assembleContext(sessionId);
+    },
+    async ingest(params) {
+      const sessionId = typeof params?.sessionId === "string" ? params.sessionId : null;
+      const text = [params?.text, params?.content, params?.message].find(
+        (value) => typeof value === "string" && value.trim().length > 0,
+      ) ?? null;
+      if (!sessionId || !text) {
+        return null;
+      }
+      return plugin.routeAndTrack(sessionId, text);
     },
     async routeAndTrack(sessionId: string, text: string) {
       await ensureMigrations();

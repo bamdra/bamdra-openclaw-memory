@@ -7,7 +7,8 @@
       "bamdra-memory-vector"
     ],
     "deny": [
-      "memory-core"
+      "memory-core",
+      "memory-lancedb"
     ],
     "load": {
       "paths": [
@@ -55,15 +56,21 @@
         }
       },
       "bamdra-memory-vector": {
-        "enabled": false,
+        "enabled": true,
         "config": {
-          "enabled": false,
+          "enabled": true,
           "markdownRoot": "~/.openclaw/memory/vector/markdown",
           "privateMarkdownRoot": "~/.openclaw/memory/vector/markdown/private",
           "sharedMarkdownRoot": "~/.openclaw/memory/vector/markdown/shared",
           "indexPath": "~/.openclaw/memory/vector/index.json",
           "dimensions": 64
         }
+      },
+      "memory-core": {
+        "enabled": false
+      },
+      "memory-lancedb": {
+        "enabled": false
       }
     }
   }

@@ -16,7 +16,7 @@ Merge the following into `~/.openclaw/openclaw.json`:
 
 1. set `plugins.enabled = true`
 2. add `bamdra-openclaw-memory` to `plugins.allow`
-3. add `"memory-core"` to `plugins.deny`
+3. add `"memory-core"` and `"memory-lancedb"` to `plugins.deny`
 4. append the plugin path to `plugins.load.paths`
 5. set `plugins.slots.memory = "bamdra-openclaw-memory"`
 6. set `plugins.slots.contextEngine = "bamdra-openclaw-memory"` for current OpenClaw compatibility
@@ -46,7 +46,8 @@ This gives you:
       "bamdra-openclaw-memory"
     ],
     "deny": [
-      "memory-core"
+      "memory-core",
+      "memory-lancedb"
     ],
     "load": {
       "paths": [
@@ -82,6 +83,7 @@ This gives you:
 - keep SQLite as the source of truth
 - restart OpenClaw after config changes
 - merge carefully with existing plugin state
+- keep conflicting built-in memory plugins disabled so they cannot preempt the memory slot
 
 ## Current Integration Boundary
 

@@ -20,7 +20,7 @@ Then bind the plugin in `~/.openclaw/openclaw.json`:
 {
   "plugins": {
     "allow": ["bamdra-openclaw-memory"],
-    "deny": ["memory-core"],
+    "deny": ["memory-core", "memory-lancedb"],
     "slots": {
       "memory": "bamdra-openclaw-memory",
       "contextEngine": "bamdra-openclaw-memory"

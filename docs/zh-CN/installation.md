@@ -24,7 +24,7 @@
 
 你需要：
 
-- Node.js 22.x 或更高
+- Node.js 22.12.0 或更高
 - pnpm 10.x
 - 一个本地可写目录给 SQLite
 - 已经能正常运行的 OpenClaw
@@ -46,7 +46,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 随后 OpenClaw 应该会把 `bamdra-openclaw-memory` 视为当前的 `memory` 和 `contextEngine` 槽位目标。按照当前实现，这一步会在运行时首次加载插件时自动补齐。
 
-这 3 个公开插件都可以独立运行。通过 npm 安装 `bamdra-openclaw-memory` 时，它会自动创建本地 memory 目录、自动把 `bamdra-user-bind` 补齐到 OpenClaw 扩展目录、把 `bamdra-memory-vector` 一起放到本地，并把随包 skill 物化到 `~/.openclaw/skills/`。
+通过 npm 安装 `bamdra-openclaw-memory` 时，它会自动创建本地 memory 目录、自动把 `bamdra-user-bind` 补齐到 OpenClaw 扩展目录、自动补齐并启用 `bamdra-memory-vector`、把随包 skill 物化到 `~/.openclaw/skills/`，同时禁用冲突的内置 memory 插件，例如 `memory-core` 和 `memory-lancedb`。
 
 安装后的向量最佳实践建议：
 
@@ -141,7 +141,8 @@ OpenClaw 需要加载这个目录：
       "bamdra-openclaw-memory"
     ],
     "deny": [
-      "memory-core"
+      "memory-core",
+      "memory-lancedb"
     ],
     "load": {
       "paths": [

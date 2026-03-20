@@ -22,7 +22,7 @@ Install it if any of these sound familiar:
 
 ## Requirements
 
-- Node.js 22.x or newer
+- Node.js 22.12.0 or newer
 - pnpm 10.x
 - a writable local directory for SQLite
 - a working OpenClaw installation
@@ -44,7 +44,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 OpenClaw should then see `bamdra-openclaw-memory` as the active `memory` and `contextEngine` slot target. In current builds, the plugin bootstrap fills that in automatically when the runtime first loads.
 
-All three public plugins can run independently. When `bamdra-openclaw-memory` is installed through npm, it auto-creates the local memory directory, auto-provisions `bamdra-user-bind`, stages `bamdra-memory-vector` locally, and materializes the bundled skills into `~/.openclaw/skills/`.
+When `bamdra-openclaw-memory` is installed through npm, it auto-creates the local memory directory, auto-provisions `bamdra-user-bind`, auto-provisions and enables `bamdra-memory-vector`, materializes the bundled skills into `~/.openclaw/skills/`, and disables conflicting built-in memory plugins such as `memory-core` and `memory-lancedb`.
 
 Recommended vector best practice after install:
 
@@ -147,7 +147,8 @@ The core shape looks like this:
       "bamdra-openclaw-memory"
     ],
     "deny": [
-      "memory-core"
+      "memory-core",
+      "memory-lancedb"
     ],
     "load": {
       "paths": [

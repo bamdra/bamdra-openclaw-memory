@@ -135,12 +135,23 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
     );
     assert.equal(config.tools.allow.includes("bamdra_user_bind_get_my_profile"), true);
     assert.equal(config.tools.allow.includes("bamdra_user_bind_admin_query"), true);
+    assert.equal(config.plugins.enabled, true);
     assert.equal(config.plugins.slots.memory, "bamdra-openclaw-memory");
     assert.equal(config.plugins.slots.contextEngine, "bamdra-openclaw-memory");
+    assert.equal(config.plugins.deny.includes("memory-core"), true);
+    assert.equal(config.plugins.deny.includes("memory-lancedb"), true);
     assert.equal(config.plugins.entries["bamdra-openclaw-memory"].enabled, true);
     assert.equal(
       config.plugins.entries["bamdra-openclaw-memory"].config.store.path,
       "~/.openclaw/memory/main.sqlite",
+    );
+    assert.equal(config.plugins.entries["memory-core"].enabled, false);
+    assert.equal(config.plugins.entries["memory-lancedb"].enabled, false);
+    assert.equal(config.plugins.entries["bamdra-user-bind"].enabled, true);
+    assert.equal(config.plugins.entries["bamdra-user-bind"].config.enabled, true);
+    assert.equal(
+      config.plugins.entries["bamdra-user-bind"].config.localStorePath,
+      "~/.openclaw/data/bamdra-user-bind",
     );
     assert.deepEqual(
       config.agents.list[0].skills,
@@ -159,6 +170,7 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
     assert.equal(existsSync(join(extensionsDir, "bamdra-memory-vector", "index.js")), true);
     assert.equal(config.plugins.entries["bamdra-memory-vector"].enabled, true);
     assert.equal(config.plugins.entries["bamdra-memory-vector"].config.enabled, true);
+    assert.equal(config.plugins.entries["bamdra-memory-vector"].config.dimensions, 64);
     assert.equal(
       config.plugins.entries["bamdra-memory-vector"].config.privateMarkdownRoot,
       "~/.openclaw/memory/vector/markdown/private",
@@ -172,6 +184,65 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
     assert.equal(existsSync(join(userBindProfileSkillDir, "SKILL.md")), true);
     assert.equal(existsSync(join(userBindAdminSkillDir, "SKILL.md")), true);
     assert.equal(existsSync(join(vectorSkillDir, "SKILL.md")), true);
+  } finally {
+    if (previousForceBootstrap === undefined) {
+      delete process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP;
+    } else {
+      process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP = previousForceBootstrap;
+    }
+    if (previousHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = previousHome;
+    }
+  }
+});
+
+test("unified plugin re-enables bundled vector support while keeping conflicting built-ins disabled", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "openclaw-enhanced-bootstrap-conflicts-"));
+  const homeDir = join(dir, "home");
+  const openclawDir = join(homeDir, ".openclaw");
+  const configPath = join(openclawDir, "openclaw.json");
+  const previousHome = process.env.HOME;
+  const previousForceBootstrap = process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP;
+
+  mkdirSync(openclawDir, { recursive: true });
+  writeFileSync(
+    configPath,
+    `${JSON.stringify({
+      plugins: {
+        entries: {
+          "memory-core": { enabled: true },
+          "memory-lancedb": { enabled: true },
+          "bamdra-memory-vector": { enabled: false, config: { enabled: false } },
+        },
+      },
+      agents: { list: [{ id: "main", skills: [] }] },
+    }, null, 2)}\n`,
+    "utf8",
+  );
+
+  process.env.HOME = homeDir;
+  process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP = "1";
+
+  try {
+    registerUnifiedPlugin({
+      config: {
+        enabled: true,
+        store: { provider: "sqlite", path: join(dir, "memory.sqlite") },
+        cache: { provider: "memory", maxSessions: 16 },
+      },
+      registerContextEngine() {},
+      registerTool() {},
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    const config = JSON.parse(readFileSync(configPath, "utf8"));
+    assert.equal(config.plugins.entries["memory-core"].enabled, false);
+    assert.equal(config.plugins.entries["memory-lancedb"].enabled, false);
+    assert.equal(config.plugins.entries["bamdra-memory-vector"].enabled, true);
+    assert.equal(config.plugins.entries["bamdra-memory-vector"].config.enabled, true);
   } finally {
     if (previousForceBootstrap === undefined) {
       delete process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP;

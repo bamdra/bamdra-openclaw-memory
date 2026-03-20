@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.15 - 2026-03-20
+
+### Fixed
+
+- added OpenClaw 2026.3.13 compatibility aliases so older runtimes calling `contextEngine.assemble()` and `contextEngine.ingest()` no longer fail after install
+- expanded host bootstrap coverage so installing `bamdra-openclaw-memory` fully backfills `bamdra-user-bind` runtime config instead of leaving partial dependency entries behind
+- hardened automatic suite setup to disable conflicting built-in memory plugins including `memory-core` and `memory-lancedb`
+- switched bundled `bamdra-memory-vector` provisioning to auto-enable the vector entry and default paths during bootstrap so the suite lands in one consistent ready state
+- tightened the published Node.js engine requirement to `>=22.12.0` to match the runtime features the suite actually uses
+
+### Notes
+
+- this release is intended for users on OpenClaw `2026.3.13` who saw `contextEngine` load or interface mismatch errors after installing the suite
+- successful npm install should now leave `bamdra-openclaw-memory` bound to both `plugins.slots.memory` and `plugins.slots.contextEngine`, with built-in competing memory plugins disabled
+- the suite now treats vector recall as part of the default installed stack rather than an opt-in post-install step
+
 ## v0.3.14 - 2026-03-19
 
 ### Fixed

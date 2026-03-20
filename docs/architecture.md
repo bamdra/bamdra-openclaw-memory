@@ -165,6 +165,6 @@ If the process restarts:
 The current implementation has been hardened for OpenClaw runtime behavior observed in real deployments:
 
 - the `memory` slot must be occupied by `bamdra-openclaw-memory`
-- built-in `memory-core` should be denied to avoid slot conflicts
+- built-in `memory-core` and `memory-lancedb` should be denied to avoid slot conflicts
 - the compatibility `contextEngine` slot should also point to `bamdra-openclaw-memory` on current OpenClaw builds
 - explicit tool registration is required to avoid shadowing by built-in tools

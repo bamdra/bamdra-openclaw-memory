@@ -59,6 +59,7 @@ const LEGACY_TOOL_ALIASES = [
 const REQUIRED_PLUGIN_IDS = ["bamdra-user-bind"] as const;
 const OPTIONAL_PLUGIN_IDS = ["bamdra-memory-vector"] as const;
 const AUTO_PROVISION_PLUGIN_IDS = [...REQUIRED_PLUGIN_IDS, ...OPTIONAL_PLUGIN_IDS] as const;
+const CONFLICTING_PLUGIN_IDS = ["memory-core", "memory-lancedb"] as const;
 const runtimeRequire = createRequire(__filename);
 
 function logUnifiedMemoryEvent(event: string, details: Record<string, unknown> = {}): void {
@@ -522,10 +523,15 @@ function ensureHostConfig(
   const pluginEntry = ensureObject(entries, PLUGIN_ID);
   const userBindEntry = ensureObject(entries, REQUIRED_PLUGIN_IDS[0]);
   const vectorEntry = ensureObject(entries, OPTIONAL_PLUGIN_IDS[0]);
+  const conflictingEntries = CONFLICTING_PLUGIN_IDS.map((pluginId) => ensureObject(entries, pluginId));
   const pluginConfig = ensureObject(pluginEntry, "config");
   const pluginStore = ensureObject(pluginConfig, "store");
   const pluginCache = ensureObject(pluginConfig, "cache");
 
+  if (plugins.enabled !== true) {
+    plugins.enabled = true;
+    changed = true;
+  }
   changed = ensureArrayIncludes(plugins, "allow", PLUGIN_ID) || changed;
   for (const dependencyId of REQUIRED_PLUGIN_IDS) {
     changed = ensureArrayIncludes(plugins, "allow", dependencyId) || changed;
@@ -538,7 +544,9 @@ function ensureHostConfig(
   for (const optionalId of OPTIONAL_PLUGIN_IDS) {
     changed = ensureArrayIncludes(plugins, "allow", optionalId) || changed;
   }
-  changed = ensureArrayIncludes(plugins, "deny", "memory-core") || changed;
+  for (const conflictingId of CONFLICTING_PLUGIN_IDS) {
+    changed = ensureArrayIncludes(plugins, "deny", conflictingId) || changed;
+  }
   changed = ensureArrayIncludes(load, "paths", join(homedir(), ".openclaw", "extensions")) || changed;
   changed = ensureArrayIncludes(skillsLoad, "extraDirs", join(homedir(), ".openclaw", "skills")) || changed;
 
@@ -578,16 +586,40 @@ function ensureHostConfig(
   if (typeof userBindEntry.config !== "object" || userBindEntry.config == null) {
     userBindEntry.config = {
       enabled: true,
+      localStorePath: "~/.openclaw/data/bamdra-user-bind",
+      exportPath: "~/.openclaw/data/bamdra-user-bind/exports",
+      profileMarkdownRoot: "~/.openclaw/data/bamdra-user-bind/profiles/private",
+      cacheTtlMs: 1800000,
       adminAgents: ["main"],
     };
     changed = true;
   }
   const userBindConfig = ensureObject(userBindEntry, "config");
+  if (userBindConfig.enabled !== true) {
+    userBindConfig.enabled = true;
+    changed = true;
+  }
+  if (typeof userBindConfig.localStorePath !== "string" || userBindConfig.localStorePath.length === 0) {
+    userBindConfig.localStorePath = "~/.openclaw/data/bamdra-user-bind";
+    changed = true;
+  }
+  if (typeof userBindConfig.exportPath !== "string" || userBindConfig.exportPath.length === 0) {
+    userBindConfig.exportPath = "~/.openclaw/data/bamdra-user-bind/exports";
+    changed = true;
+  }
+  if (typeof userBindConfig.profileMarkdownRoot !== "string" || userBindConfig.profileMarkdownRoot.length === 0) {
+    userBindConfig.profileMarkdownRoot = "~/.openclaw/data/bamdra-user-bind/profiles/private";
+    changed = true;
+  }
+  if (typeof userBindConfig.cacheTtlMs !== "number") {
+    userBindConfig.cacheTtlMs = 1800000;
+    changed = true;
+  }
   if (!Array.isArray(userBindConfig.adminAgents) || userBindConfig.adminAgents.length === 0) {
     userBindConfig.adminAgents = ["main"];
     changed = true;
   }
-  if (typeof vectorEntry.enabled !== "boolean") {
+  if (vectorEntry.enabled !== true) {
     vectorEntry.enabled = true;
     changed = true;
   }
@@ -598,12 +630,13 @@ function ensureHostConfig(
       privateMarkdownRoot: "~/.openclaw/memory/vector/markdown/private",
       sharedMarkdownRoot: "~/.openclaw/memory/vector/markdown/shared",
       indexPath: "~/.openclaw/memory/vector/index.json",
+      dimensions: 64,
       topK: 5,
     };
     changed = true;
   } else {
     const vectorConfig = ensureObject(vectorEntry, "config");
-    if (typeof vectorConfig.enabled !== "boolean") {
+    if (vectorConfig.enabled !== true) {
       vectorConfig.enabled = true;
       changed = true;
     }
@@ -623,8 +656,19 @@ function ensureHostConfig(
       vectorConfig.indexPath = "~/.openclaw/memory/vector/index.json";
       changed = true;
     }
+    if (typeof vectorConfig.dimensions !== "number") {
+      vectorConfig.dimensions = 64;
+      changed = true;
+    }
     if (typeof vectorConfig.topK !== "number") {
       vectorConfig.topK = 5;
+      changed = true;
+    }
+  }
+
+  for (const conflictingEntry of conflictingEntries) {
+    if (conflictingEntry.enabled !== false) {
+      conflictingEntry.enabled = false;
       changed = true;
     }
   }

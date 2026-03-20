@@ -16,7 +16,7 @@
 
 1. 设置 `plugins.enabled = true`
 2. 将 `bamdra-openclaw-memory` 加入 `plugins.allow`
-3. 将 `memory-core` 加入 `plugins.deny`
+3. 将 `memory-core` 和 `memory-lancedb` 加入 `plugins.deny`
 4. 把插件路径追加到 `plugins.load.paths`
 5. 设置 `plugins.slots.memory = "bamdra-openclaw-memory"`
 6. 兼容当前 OpenClaw 版本时，同时设置 `plugins.slots.contextEngine = "bamdra-openclaw-memory"`
@@ -46,7 +46,8 @@
       "bamdra-openclaw-memory"
     ],
     "deny": [
-      "memory-core"
+      "memory-core",
+      "memory-lancedb"
     ],
     "load": {
       "paths": [
@@ -81,7 +82,7 @@
 
 - 修改配置后需要重启 OpenClaw
 - 合并配置时要保留你现有的插件状态
-- 如果内置 `memory-core` 没有被 deny，它可能会抢占 `memory` slot
+- 如果内置 `memory-core` 或 `memory-lancedb` 没有被 deny，它们可能会抢占 `memory` slot
 - 当前运行时里，tools 插件不应假设一定能拿到同进程的 engine 实例
 
 ## 隔离边界

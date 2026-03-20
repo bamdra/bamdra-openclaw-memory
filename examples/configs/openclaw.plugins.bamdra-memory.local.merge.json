@@ -5,7 +5,8 @@
       "bamdra-openclaw-memory"
     ],
     "deny": [
-      "memory-core"
+      "memory-core",
+      "memory-lancedb"
     ],
     "load": {
       "paths": [
@@ -39,6 +40,12 @@
             "topicFactLimit": 16
           }
         }
+      },
+      "memory-core": {
+        "enabled": false
+      },
+      "memory-lancedb": {
+        "enabled": false
       }
     }
   }

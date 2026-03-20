@@ -28,7 +28,7 @@ Do not replace the whole `plugins` object in `~/.openclaw/openclaw.json` if you 
 3. Add `bamdra-openclaw-memory` to `plugins.load.paths`.
 4. Set `plugins.slots.contextEngine = "bamdra-openclaw-memory"`.
 5. Set `plugins.slots.memory = "bamdra-openclaw-memory"`.
-6. Add `"memory-core"` to `plugins.deny`.
+6. Add `"memory-core"` and `"memory-lancedb"` to `plugins.deny`.
 7. Add `plugins.entries.bamdra-openclaw-memory`.
 
 ## Example Overlays
@@ -42,7 +42,7 @@ Local in-memory cache:
 - Config changes require a gateway restart.
 - Your current `~/.openclaw/openclaw.json` already has other plugin state; merge carefully instead of overwriting.
 - In current OpenClaw builds, setting both `plugins.slots.memory` and `plugins.slots.contextEngine` is the safest compatibility choice.
-- If `memory-core` is still enabled, it can preempt the slot and disable the third-party engine even when the plugin is loaded.
+- If `memory-core` or `memory-lancedb` is still enabled, it can preempt the slot and disable the third-party engine even when the plugin is loaded.
 
 ## Runtime Hardening
 
