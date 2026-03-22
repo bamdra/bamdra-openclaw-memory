@@ -45,6 +45,16 @@ Add a short policy block like this:
 
 The point is to describe when memory should be used, not to explain implementation details.
 
+## USER.md And User-Bind
+
+If you install the full suite, treat `bamdra-user-bind` as the primary per-user profile layer.
+
+- keep preferred address, nickname, timezone, tone defaults, and other stable user traits in the bound profile
+- keep workspace `USER.md` thin and focused on environment facts, operating context, or team-wide constraints
+- if the current turn explicitly asks for a different form of address, follow the current turn first
+
+In other words, `USER.md` should not be the long-term source of truth for who this user is. That belongs in `bamdra-user-bind`.
+
 ## SKILL.md Example
 
 If you maintain a local memory-operator skill, keep it thin, but make the decision policy explicit instead of turning it into a mere tool list.

@@ -46,6 +46,11 @@ OpenClaw should then see `bamdra-openclaw-memory` as the active `memory` and `co
 
 When `bamdra-openclaw-memory` is installed through npm, it auto-creates the local memory directory, auto-provisions `bamdra-user-bind`, auto-provisions and enables `bamdra-memory-vector`, materializes the bundled skills into `~/.openclaw/skills/`, and disables conflicting built-in memory plugins such as `memory-core` and `memory-lancedb`.
 
+After install, the recommended prompt split is:
+
+- let `bamdra-user-bind` own per-user profile data such as preferred address, nickname, timezone, and stable tone defaults
+- keep workspace `USER.md` files minimal and focused on environment facts rather than identity
+
 Recommended vector best practice after install:
 
 ```json

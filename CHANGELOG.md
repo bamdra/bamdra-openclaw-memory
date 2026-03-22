@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.3.16 - 2026-03-22
+
+### Changed
+
+- clarified the prompt policy so `bamdra-user-bind` is treated as the primary per-user personalization layer and workspace `USER.md` files stay thin
+- refreshed installation and prompting docs to explain that preferred address and other stable user traits should live in the bound profile, not be duplicated across prompt files
+- aligned the release metadata with the published plugin package version and the new companion plugin patch releases
+
+### Notes
+
+- this release pairs with `@bamdra/bamdra-user-bind@0.1.11` and `@bamdra/bamdra-memory-vector@0.1.11`
+- the runtime behavior is unchanged for existing installs; this release mainly closes the gap between bootstrap behavior, prompting guidance, and published metadata
+
 ## v0.3.15 - 2026-03-20
 
 ### Fixed

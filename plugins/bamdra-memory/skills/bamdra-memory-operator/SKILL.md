@@ -11,6 +11,8 @@ This skill is an optional behavior layer. It improves tool judgment, but the run
 
 Treat `bamdra-user-bind` as the primary user personalization layer. In practice it should cover most of what a per-user `USER.md` file would normally do: preferred address, long-lived preferences, role, personality notes, and other stable profile traits for the current bound user.
 
+Workspace-level `USER.md` files should stay thin and avoid repeating per-user address preferences. Use the bound profile as the source of truth for greeting style and default address.
+
 ## Operating Goal
 
 Make memory feel natural:
@@ -21,6 +23,7 @@ Make memory feel natural:
 - avoid leaking unrelated memory into the current answer
 - avoid narrating internal storage mechanics unless the user asks
 - personalize tone and defaults from the bound user profile when that improves the response
+- prefer the bound profile over workspace notes for address, nickname, and stable personal style
 
 ## Decision Policy
 

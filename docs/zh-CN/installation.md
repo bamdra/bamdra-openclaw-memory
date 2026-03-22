@@ -48,6 +48,11 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 通过 npm 安装 `bamdra-openclaw-memory` 时，它会自动创建本地 memory 目录、自动把 `bamdra-user-bind` 补齐到 OpenClaw 扩展目录、自动补齐并启用 `bamdra-memory-vector`、把随包 skill 物化到 `~/.openclaw/skills/`，同时禁用冲突的内置 memory 插件，例如 `memory-core` 和 `memory-lancedb`。
 
+安装完成后，推荐的 prompt 分工是：
+
+- 让 `bamdra-user-bind` 负责默认称呼、昵称、时区、长期语气偏好等 per-user 画像信息
+- 让 workspace 里的 `USER.md` 保持轻量，只保留环境事实，不再重复身份层内容
+
 安装后的向量最佳实践建议：
 
 ```json

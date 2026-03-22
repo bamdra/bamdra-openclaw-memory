@@ -111,4 +111,6 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - [安装指南](./docs/zh-CN/installation.md)
 - [提示词指南](./docs/zh-CN/prompting.md)
 - [配置样例](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
+- [治理蓝图](../docs/openclaw-governance-blueprint.md)
+- [Obsidian 仓库结构](../docs/obsidian-vault-structure.md)
 - [GitHub 首页](https://github.com/bamdra)
