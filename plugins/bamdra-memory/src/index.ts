@@ -21,6 +21,7 @@ const TOOLS_REGISTERED_KEY = Symbol.for("bamdra-openclaw-memory.tools-registered
 const ENGINE_REGISTERED_KEY = Symbol.for("bamdra-openclaw-memory.context-engine-registered");
 const BOOTSTRAP_STARTED_KEY = Symbol.for("bamdra-openclaw-memory.host-bootstrap-started");
 const SKILL_ID = "bamdra-memory-operator";
+const UPGRADE_SKILL_ID = "bamdra-memory-upgrade-operator";
 const USER_BIND_PROFILE_SKILL_ID = "bamdra-user-bind-profile";
 const USER_BIND_ADMIN_SKILL_ID = "bamdra-user-bind-admin";
 const VECTOR_SKILL_ID = "bamdra-memory-vector-operator";
@@ -360,7 +361,10 @@ function bootstrapOpenClawHost(): void {
   const pluginRuntimeRoot = resolve(dirname(__dirname));
   const configPath = join(openclawHome, "openclaw.json");
   const globalSkillsDir = join(openclawHome, "skills");
-  const bundledSkillDir = join(resolve(dirname(__dirname)), "skills", SKILL_ID);
+  const bundledSkillDirs = [
+    { sourceDir: join(resolve(dirname(__dirname)), "skills", SKILL_ID), targetDir: join(globalSkillsDir, SKILL_ID) },
+    { sourceDir: join(resolve(dirname(__dirname)), "skills", UPGRADE_SKILL_ID), targetDir: join(globalSkillsDir, UPGRADE_SKILL_ID) },
+  ];
   const targetSkillDir = join(globalSkillsDir, SKILL_ID);
   const forceBootstrap = process.env.OPENCLAW_BAMDRA_MEMORY_FORCE_BOOTSTRAP === "1";
 
@@ -382,7 +386,9 @@ function bootstrapOpenClawHost(): void {
   mkdirSync(memoryRoot, { recursive: true });
 
   materializeBundledDependencyPlugins(pluginRuntimeRoot, extensionRoot);
-  materializeBundledSkill(bundledSkillDir, targetSkillDir);
+  for (const skill of bundledSkillDirs) {
+    materializeBundledSkill(skill.sourceDir, skill.targetDir);
+  }
   materializeBundledDependencySkills(pluginRuntimeRoot, globalSkillsDir);
 
   const original = readFileSync(configPath, "utf8");

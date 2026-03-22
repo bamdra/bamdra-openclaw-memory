@@ -7,6 +7,7 @@ const { createRequire } = require("node:module");
 
 const PLUGIN_ID = "bamdra-openclaw-memory";
 const SKILL_ID = "bamdra-memory-operator";
+const UPGRADE_SKILL_ID = "bamdra-memory-upgrade-operator";
 const USER_BIND_PROFILE_SKILL_ID = "bamdra-user-bind-profile";
 const USER_BIND_ADMIN_SKILL_ID = "bamdra-user-bind-admin";
 const VECTOR_SKILL_ID = "bamdra-memory-vector-operator";
@@ -366,8 +367,10 @@ function main() {
   const extensionRoot = join(openclawHome, "extensions");
   const memoryRoot = join(openclawHome, "memory");
   const globalSkillsDir = join(openclawHome, "skills");
-  const bundledSkillDir = join(resolve(__dirname, "..", "skills", SKILL_ID));
-  const targetSkillDir = join(globalSkillsDir, SKILL_ID);
+  const bundledSkills = [
+    { sourceDir: join(resolve(__dirname, "..", "skills", SKILL_ID)), targetDir: join(globalSkillsDir, SKILL_ID) },
+    { sourceDir: join(resolve(__dirname, "..", "skills", UPGRADE_SKILL_ID)), targetDir: join(globalSkillsDir, UPGRADE_SKILL_ID) },
+  ];
   const configPath = join(openclawHome, "openclaw.json");
 
   if (!existsSync(configPath)) {
@@ -380,7 +383,9 @@ function main() {
   mkdirSync(memoryRoot, { recursive: true });
 
   materializeBundledDependencyPlugins(extensionRoot);
-  materializeBundledSkill(bundledSkillDir, targetSkillDir);
+  for (const skill of bundledSkills) {
+    materializeBundledSkill(skill.sourceDir, skill.targetDir);
+  }
   materializeBundledDependencySkills(globalSkillsDir);
 
   const original = readFileSync(configPath, "utf8");

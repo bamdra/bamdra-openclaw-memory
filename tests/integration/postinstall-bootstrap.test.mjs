@@ -58,6 +58,7 @@ test("postinstall bootstrap patches openclaw config before first plugin activati
   assert.equal(existsSync(join(extensionsDir, "bamdra-user-bind", "index.js")), true);
   assert.equal(existsSync(join(extensionsDir, "bamdra-memory-vector", "index.js")), true);
   assert.equal(existsSync(join(skillsDir, "bamdra-memory-operator", "SKILL.md")), true);
+  assert.equal(existsSync(join(skillsDir, "bamdra-memory-upgrade-operator", "SKILL.md")), true);
   assert.equal(existsSync(join(skillsDir, "bamdra-user-bind-profile", "SKILL.md")), true);
   assert.equal(existsSync(join(skillsDir, "bamdra-user-bind-admin", "SKILL.md")), true);
   assert.equal(existsSync(join(skillsDir, "bamdra-memory-vector-operator", "SKILL.md")), true);

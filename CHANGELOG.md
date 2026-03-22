@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.18 - 2026-03-22
+
+### Added
+
+- bundled a new `bamdra-memory-upgrade-operator` skill with a backup-first upgrade script so users can repair stale config, existing plugin directories, and partial suite installs without hand-editing `openclaw.json`
+
+### Fixed
+
+- materialize the new upgrade skill into `~/.openclaw/skills/` during both npm `postinstall` bootstrap and runtime bootstrap fallback
+
 ## v0.3.17 - 2026-03-22
 
 ### Fixed

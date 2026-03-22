@@ -71,6 +71,7 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
   const extensionsDir = join(openclawDir, "extensions");
   const memoryDir = join(openclawDir, "memory");
   const existingSkillDir = join(globalSkillsDir, "bamdra-memory-operator");
+  const upgradeSkillDir = join(globalSkillsDir, "bamdra-memory-upgrade-operator");
   const userBindProfileSkillDir = join(globalSkillsDir, "bamdra-user-bind-profile");
   const userBindAdminSkillDir = join(globalSkillsDir, "bamdra-user-bind-admin");
   const vectorSkillDir = join(globalSkillsDir, "bamdra-memory-vector-operator");
@@ -119,7 +120,7 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
       registerTool() {},
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 25));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     const config = JSON.parse(readFileSync(configPath, "utf8"));
     assert.deepEqual(
@@ -181,6 +182,7 @@ test("unified plugin bootstraps tools allowlist and agent skills without overwri
     );
     assert.equal(existsSync(join(existingSkillDir, "SKILL.md")), true);
     assert.equal(readFileSync(join(existingSkillDir, "SKILL.md"), "utf8"), "existing-skill\n");
+    assert.equal(existsSync(join(upgradeSkillDir, "SKILL.md")), true);
     assert.equal(existsSync(join(userBindProfileSkillDir, "SKILL.md")), true);
     assert.equal(existsSync(join(userBindAdminSkillDir, "SKILL.md")), true);
     assert.equal(existsSync(join(vectorSkillDir, "SKILL.md")), true);
@@ -236,7 +238,7 @@ test("unified plugin re-enables bundled vector support while keeping conflicting
       registerTool() {},
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 25));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     const config = JSON.parse(readFileSync(configPath, "utf8"));
     assert.equal(config.plugins.entries["memory-core"].enabled, false);
