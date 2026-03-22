@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.19 - 2026-03-23
+
+### Changed
+
+- refreshed the suite documentation to cover the standalone Clawdhub upgrade skill more clearly across installation, downloads, and user-bind guidance
+- documented the newer user-bind profile model, including machine-readable frontmatter, the mirrored human-readable profile section, and semantic profile update behavior
+
+### Fixed
+
+- aligned automatic all-agent skill injection with both `agents.list` and object-map agent config layouts without corrupting `agents.defaults`
+- updated bundled guidance so user-profile facts are routed to `bamdra-user-bind` rather than being stored as shared memory facts
+
+### Notes
+
+- this release pairs with `@bamdra/bamdra-user-bind@0.1.13`
+
 ## v0.3.18 - 2026-03-22
 
 ### Added

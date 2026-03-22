@@ -61,6 +61,12 @@ It covers most of what a per-user `USER.md` would usually try to do:
 - role and collaboration style
 - long-lived user notes
 
+Recent profile behavior improvements:
+
+- profile updates now support semantic `replace`, `append`, and `remove` instead of only blind overwrite
+- the Markdown mirror keeps machine-readable frontmatter as the controlled source
+- the `Confirmed Profile` section in the body is now a human-readable mirror of the same structured fields
+
 ### `bamdra-memory-vector`
 
 Turns local Markdown into a real knowledge base.
@@ -111,6 +117,24 @@ That gives you:
 - a local-first memory runtime
 - a living user profile
 - a maintainable private and shared knowledge base
+
+## Profile update semantics
+
+`bamdra-user-bind` no longer treats every profile change as a full replacement.
+
+When the user says something new about how they prefer to collaborate, the runtime now distinguishes between:
+
+- replacing an old preference
+- appending another stable preference
+- removing one specific old preference
+
+This matters for fields like `preferences`, `personality`, and `notes`, where the right behavior is often incremental rather than destructive.
+
+The Markdown mirror is also clearer now:
+
+- frontmatter remains the machine-readable source of truth
+- the body shows a synchronized human-readable summary
+- `Supplementary Notes` are reserved for durable context that does not fit the structured fields
 
 ## Repository map
 

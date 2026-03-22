@@ -169,9 +169,8 @@ function ensureToolAllowlist(tools) {
 }
 
 function ensureAgentSkills(agents, skillId) {
-  const list = Array.isArray(agents.list) ? agents.list : [];
   let changed = false;
-  for (const item of list) {
+  for (const item of iterAgentConfigs(agents)) {
     if (!item || typeof item !== "object") continue;
     const currentSkills = Array.isArray(item.skills) ? [...item.skills] : [];
     if (!Array.isArray(item.skills)) {
@@ -188,9 +187,8 @@ function ensureAgentSkills(agents, skillId) {
 }
 
 function ensureAdminSkills(agents, skillId, adminAgentIds) {
-  const list = Array.isArray(agents.list) ? agents.list : [];
   let changed = false;
-  for (const item of list) {
+  for (const item of iterAgentConfigs(agents)) {
     if (!item || typeof item !== "object") continue;
     const agentId = typeof item.id === "string" ? item.id : typeof item.name === "string" ? item.name : null;
     if (!agentId || !adminAgentIds.includes(agentId)) continue;
@@ -206,6 +204,27 @@ function ensureAdminSkills(agents, skillId, adminAgentIds) {
     }
   }
   return changed;
+}
+
+function* iterAgentConfigs(agents) {
+  const seen = new Set();
+  const list = Array.isArray(agents.list) ? agents.list : [];
+  for (const item of list) {
+    if (item && typeof item === "object") {
+      seen.add(item);
+      yield item;
+    }
+  }
+  if (list.length > 0) return;
+  for (const [key, value] of Object.entries(agents)) {
+    if (key === "list" || key === "defaults" || !value || typeof value !== "object" || Array.isArray(value)) continue;
+    if (seen.has(value)) continue;
+    if (typeof value.id !== "string" && typeof value.name !== "string") {
+      value.id = key;
+    }
+    seen.add(value);
+    yield value;
+  }
 }
 
 function ensureHostConfig(config) {

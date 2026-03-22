@@ -711,10 +711,9 @@ function ensureToolAllowlist(tools: Record<string, unknown>): boolean {
 }
 
 function ensureAgentSkills(agents: Record<string, unknown>, skillId: string): boolean {
-  const list = Array.isArray(agents.list) ? agents.list : [];
   let changed = false;
 
-  for (const item of list) {
+  for (const item of iterAgentConfigs(agents)) {
     if (!item || typeof item !== "object") {
       continue;
     }
@@ -741,9 +740,8 @@ function ensureAdminSkills(
   skillId: string,
   adminAgentIds: string[],
 ): boolean {
-  const list = Array.isArray(agents.list) ? agents.list : [];
   let changed = false;
-  for (const item of list) {
+  for (const item of iterAgentConfigs(agents)) {
     if (!item || typeof item !== "object") {
       continue;
     }
@@ -766,6 +764,35 @@ function ensureAdminSkills(
     }
   }
   return changed;
+}
+
+function *iterAgentConfigs(agents: Record<string, unknown>): Iterable<Record<string, unknown>> {
+  const seen = new Set<Record<string, unknown>>();
+  const list = Array.isArray(agents.list) ? agents.list : [];
+  for (const item of list) {
+    if (item && typeof item === "object") {
+      const agent = item as Record<string, unknown>;
+      seen.add(agent);
+      yield agent;
+    }
+  }
+  if (list.length > 0) {
+    return;
+  }
+  for (const [key, value] of Object.entries(agents)) {
+    if (key === "list" || key === "defaults" || !value || typeof value !== "object" || Array.isArray(value)) {
+      continue;
+    }
+    const agent = value as Record<string, unknown>;
+    if (seen.has(agent)) {
+      continue;
+    }
+    if (typeof agent.id !== "string" && typeof agent.name !== "string") {
+      agent.id = key;
+    }
+    seen.add(agent);
+    yield agent;
+  }
 }
 
 function dependencySkillIds(pluginId: string): string[] {

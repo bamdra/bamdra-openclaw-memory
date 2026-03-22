@@ -61,6 +61,12 @@ clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operat
 - 角色与协作方式
 - 长期用户备注
 
+近期这层又补了几个关键能力：
+
+- 画像更新不再只有“整段覆盖”，而是支持语义上的 `replace / append / remove`
+- Markdown 镜像继续保留 frontmatter 作为机器可读主源
+- 正文里的“已确认画像”变成同一份结构化画像的人类可读镜像
+
 ### `bamdra-memory-vector`
 
 负责把本地 Markdown 变成真正的知识库。
@@ -111,6 +117,24 @@ clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operat
 - 本地优先的连续性运行时
 - 可持续维护的用户画像
 - 真正可编辑的私有与共享知识库
+
+## 画像更新语义
+
+`bamdra-user-bind` 现在不会再把所有画像更新都当成“整段替换”。
+
+当用户自然表达新的协作偏好时，运行时会区分：
+
+- 替换旧偏好
+- 追加一个新的长期偏好
+- 删除某一个特定旧偏好
+
+这对于 `preferences`、`personality`、`notes` 这类字段尤其重要，因为它们很多时候更适合增量维护，而不是粗暴覆盖。
+
+现在的 Markdown 镜像也更清晰：
+
+- frontmatter 继续作为机器读写主源
+- 正文展示同步的人类可读摘要
+- “补充备注”只保留不适合结构化的长期上下文
 
 ## 继续阅读
 

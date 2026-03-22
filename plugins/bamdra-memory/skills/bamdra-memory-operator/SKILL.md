@@ -66,6 +66,12 @@ Do not use it for:
 
 If the current turn conflicts with the stored profile, follow the current turn and let later updates refresh the profile deliberately.
 
+When the current user reveals stable personal traits in natural language, prefer updating `bamdra-user-bind` over storing a memory fact.
+
+Judge semantically, not by fixed trigger phrases.
+
+If the message is really about the current user's long-lived style, identity, boundary, or way of working, it belongs to `bamdra-user-bind` even if the wording is indirect or casual.
+
 ## Topic Judgment
 
 Treat topic handling as a judgment task, not a keyword trigger.
@@ -139,6 +145,8 @@ Keep these private by default and prefer `user:` scope or `bamdra-user-bind` pro
 - tone and formatting preferences
 - pets, family, role, and personal background
 - the user's current focus, ongoing work, and long-lived personal goals
+
+Do not store the current user's own address, timezone, tone preference, or collaboration preference as `shared` memory facts. Those belong in `bamdra-user-bind`.
 
 When a fact is about “me”, “my”, or the current user's own stable way of working, do not store it as `shared` unless the user explicitly says it is a shared rule for everyone.
 
