@@ -16,6 +16,12 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - `bamdra-user-bind`
 - `bamdra-memory-vector`
 
+如果你本地已经装过老版本，或者当前安装状态已经损坏，推荐直接安装独立的 ClawdHub 修复 skill：
+
+```bash
+clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
+```
+
 [English README](./README.md)
 
 ## 它是什么
@@ -111,6 +117,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - [安装指南](./docs/zh-CN/installation.md)
 - [提示词指南](./docs/zh-CN/prompting.md)
 - [配置样例](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
+- [独立升级 skill](../clawhub-skills/bamdra-memory-upgrade-operator/SKILL.md)
 - [治理蓝图](../docs/openclaw-governance-blueprint.md)
 - [Obsidian 仓库结构](../docs/obsidian-vault-structure.md)
 - [GitHub 首页](https://github.com/bamdra)

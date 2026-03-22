@@ -16,6 +16,12 @@ That single install now prepares the full Bamdra memory stack:
 - `bamdra-user-bind`
 - `bamdra-memory-vector`
 
+If you already have an older or broken local install, use the standalone ClawHub repair skill:
+
+```bash
+clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
+```
+
 [中文文档](./README.zh-CN.md)
 
 ## What it is
@@ -111,4 +117,5 @@ That gives you:
 - [Installation guide](./docs/en/installation.md)
 - [Prompting guide](./docs/en/prompting.md)
 - [Example config](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
+- [Standalone upgrade skill](../clawhub-skills/bamdra-memory-upgrade-operator/SKILL.md)
 - [GitHub organization](https://github.com/bamdra)
