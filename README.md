@@ -16,7 +16,7 @@ That single install now prepares the full Bamdra memory stack:
 - `bamdra-user-bind`
 - `bamdra-memory-vector`
 
-If you already have an older or broken local install, use the standalone ClawHub repair skill:
+If you already have an older or broken local install, use the standalone Clawdhub repair skill:
 
 ```bash
 clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
