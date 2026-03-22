@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.17 - 2026-03-22
+
+### Fixed
+
+- added an npm `postinstall` bootstrap so `openclaw plugins install @bamdra/bamdra-openclaw-memory` can patch `~/.openclaw/openclaw.json`, materialize companion plugins, and copy bundled skills before the plugin is ever enabled
+- removed the install-time dependency on first runtime activation, which meant some OpenClaw CLI install and update flows appeared to ignore the suite bootstrap entirely
+- aligned the published plugin manifest version with the package version so install metadata no longer reports the old `0.3.15`
+
 ## v0.3.16 - 2026-03-22
 
 ### Changed

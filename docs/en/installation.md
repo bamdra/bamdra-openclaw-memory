@@ -42,9 +42,15 @@ If npm-based plugin install works in your OpenClaw environment, prefer that. If 
 openclaw plugins install @bamdra/bamdra-openclaw-memory
 ```
 
-OpenClaw should then see `bamdra-openclaw-memory` as the active `memory` and `contextEngine` slot target. In current builds, the plugin bootstrap fills that in automatically when the runtime first loads.
+OpenClaw should then see `bamdra-openclaw-memory` as the active `memory` and `contextEngine` slot target.
 
-When `bamdra-openclaw-memory` is installed through npm, it auto-creates the local memory directory, auto-provisions `bamdra-user-bind`, auto-provisions and enables `bamdra-memory-vector`, materializes the bundled skills into `~/.openclaw/skills/`, and disables conflicting built-in memory plugins such as `memory-core` and `memory-lancedb`.
+When `bamdra-openclaw-memory` is installed through npm, its package `postinstall` bootstrap now patches `~/.openclaw/openclaw.json` immediately, auto-creates the local memory directory, auto-provisions `bamdra-user-bind`, auto-provisions and enables `bamdra-memory-vector`, materializes the bundled skills into `~/.openclaw/skills/`, and disables conflicting built-in memory plugins such as `memory-core` and `memory-lancedb`.
+
+Important OpenClaw CLI note:
+
+- `openclaw plugins install @bamdra/bamdra-openclaw-memory` is the supported one-command install path for this suite
+- `openclaw update` updates OpenClaw itself for source installs; it should not be treated as a plugin migration hook
+- the runtime still keeps an idempotent bootstrap fallback, but npm install no longer depends on first plugin activation to finish the setup
 
 After install, the recommended prompt split is:
 

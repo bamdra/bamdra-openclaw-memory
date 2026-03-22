@@ -44,9 +44,15 @@
 openclaw plugins install @bamdra/bamdra-openclaw-memory
 ```
 
-随后 OpenClaw 应该会把 `bamdra-openclaw-memory` 视为当前的 `memory` 和 `contextEngine` 槽位目标。按照当前实现，这一步会在运行时首次加载插件时自动补齐。
+随后 OpenClaw 应该会把 `bamdra-openclaw-memory` 视为当前的 `memory` 和 `contextEngine` 槽位目标。
 
-通过 npm 安装 `bamdra-openclaw-memory` 时，它会自动创建本地 memory 目录、自动把 `bamdra-user-bind` 补齐到 OpenClaw 扩展目录、自动补齐并启用 `bamdra-memory-vector`、把随包 skill 物化到 `~/.openclaw/skills/`，同时禁用冲突的内置 memory 插件，例如 `memory-core` 和 `memory-lancedb`。
+通过 npm 安装 `bamdra-openclaw-memory` 时，包里的 `postinstall` bootstrap 现在会立刻补齐 `~/.openclaw/openclaw.json`，然后自动创建本地 memory 目录、自动把 `bamdra-user-bind` 补齐到 OpenClaw 扩展目录、自动补齐并启用 `bamdra-memory-vector`、把随包 skill 物化到 `~/.openclaw/skills/`，同时禁用冲突的内置 memory 插件，例如 `memory-core` 和 `memory-lancedb`。
+
+关于 OpenClaw CLI 还要注意：
+
+- `openclaw plugins install @bamdra/bamdra-openclaw-memory` 才是这套插件支持的一条命令安装路径
+- `openclaw update` 主要更新的是 OpenClaw 本体，尤其是源码安装场景，不应把它当成插件迁移钩子
+- runtime 里仍然保留幂等 bootstrap 兜底，但 npm 安装流程现在不再依赖首次激活插件才能完成补齐
 
 安装完成后，推荐的 prompt 分工是：
 
