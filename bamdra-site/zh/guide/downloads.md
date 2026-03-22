@@ -25,9 +25,18 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - [bamdra-openclaw-memory](https://github.com/bamdra/bamdra-openclaw-memory)
 - [bamdra-user-bind](https://github.com/bamdra/bamdra-user-bind)
 - [bamdra-memory-vector](https://github.com/bamdra/bamdra-memory-vector)
+- [Clawdhub Skill：bamdra-memory-upgrade-operator](/zh/guide/upgrade-operator)
 - [npm: @bamdra/bamdra-openclaw-memory](https://www.npmjs.com/package/@bamdra/bamdra-openclaw-memory)
 - [npm: @bamdra/bamdra-user-bind](https://www.npmjs.com/package/@bamdra/bamdra-user-bind)
 - [npm: @bamdra/bamdra-memory-vector](https://www.npmjs.com/package/@bamdra/bamdra-memory-vector)
+
+## 已安装用户
+
+如果你本地已经装过整套插件，但重装时被旧配置或旧插件目录卡住，直接安装独立修复 skill：
+
+```bash
+clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
+```
 
 ## 推荐顺序
 

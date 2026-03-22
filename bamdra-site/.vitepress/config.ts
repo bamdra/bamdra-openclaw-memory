@@ -111,6 +111,7 @@ export default defineConfig({
             text: 'Use And Install',
             items: [
               { text: 'Installation', link: '/guide/installation' },
+              { text: 'Upgrade Skill', link: '/guide/upgrade-operator' },
               { text: 'Usage', link: '/guide/usage' },
               { text: 'Best Practices', link: '/guide/best-practices' },
               { text: 'FAQ', link: '/guide/faq' },
@@ -161,6 +162,7 @@ export default defineConfig({
             text: '安装与使用',
             items: [
               { text: '安装部署', link: '/zh/guide/installation' },
+              { text: '升级 Skill', link: '/zh/guide/upgrade-operator' },
               { text: '使用方式', link: '/zh/guide/usage' },
               { text: '最佳实践', link: '/zh/guide/best-practices' },
               { text: '常见问题', link: '/zh/guide/faq' },

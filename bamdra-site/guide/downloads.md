@@ -25,9 +25,18 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - [bamdra-openclaw-memory](https://github.com/bamdra/bamdra-openclaw-memory)
 - [bamdra-user-bind](https://github.com/bamdra/bamdra-user-bind)
 - [bamdra-memory-vector](https://github.com/bamdra/bamdra-memory-vector)
+- [Clawdhub skill: bamdra-memory-upgrade-operator](/guide/upgrade-operator)
 - [npm: @bamdra/bamdra-openclaw-memory](https://www.npmjs.com/package/@bamdra/bamdra-openclaw-memory)
 - [npm: @bamdra/bamdra-user-bind](https://www.npmjs.com/package/@bamdra/bamdra-user-bind)
 - [npm: @bamdra/bamdra-memory-vector](https://www.npmjs.com/package/@bamdra/bamdra-memory-vector)
+
+## Already-installed users
+
+If your local suite is already installed and a normal reinstall is blocked by stale config or existing plugin directories, install the standalone repair skill:
+
+```bash
+clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
+```
 
 ## Recommended order
 

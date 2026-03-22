@@ -15,7 +15,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 ## 安装时会自动完成什么
 
-当你安装 `@bamdra/bamdra-openclaw-memory` 时，bootstrap 现在会自动完成这些事：
+当你安装 `@bamdra/bamdra-openclaw-memory` 时，npm `postinstall` bootstrap 现在会自动完成这些事：
 
 - 创建本地 memory 目录
 - 安装主连续性运行时
@@ -25,6 +25,19 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - 把 `memory` 和 `contextEngine` 槽位绑定到 `bamdra-openclaw-memory`
 
 对用户来说，它应该就是“一条命令安装整套能力”。
+
+另外要注意：
+
+- 插件安装请用 `openclaw plugins install @bamdra/bamdra-openclaw-memory`
+- `openclaw update` 更新的是 OpenClaw 本体，不应当被当作插件迁移入口
+
+如果你本地已经装过旧版本、当前状态又不干净，不要先手工删插件目录。更稳的方式是先安装独立修复 skill：
+
+```bash
+clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
+```
+
+然后让 agent 使用这个 skill 去安全卸载、重装或升级整套插件。详见[升级 Skill](/zh/guide/upgrade-operator)。
 
 安装完成后，建议把 prompt 分工也一起收口：
 
@@ -105,4 +118,5 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 - [架构图](/zh/guide/architecture)
 - [最佳实践](/zh/guide/best-practices)
+- [升级 Skill](/zh/guide/upgrade-operator)
 - [下载资源](/zh/guide/downloads)

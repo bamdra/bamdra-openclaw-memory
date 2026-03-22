@@ -66,6 +66,12 @@ Use the per-user mirror like this:
 
 Or move it to a synced folder, such as a private Obsidian vault.
 
+The mirror now has a clearer split:
+
+- frontmatter is the machine-readable source the runtime reads and writes
+- `Confirmed Profile` in the body is the human-readable mirror of the same structured fields
+- `Supplementary Notes` are for durable context that does not fit cleanly into structured fields
+
 ### Keep the mirror private
 
 The profile mirror should stay outside unrestricted shared knowledge scanning.
@@ -84,6 +90,30 @@ The best pattern is:
 2. let the user edit the profile Markdown gradually
 3. let the runtime inject those preferences into future sessions
 4. use admin tools only for correction, merge, audit, and repair
+
+## Profile update semantics
+
+Profile updates are no longer limited to blind replacement.
+
+The runtime now supports three semantic operations when stable user traits change:
+
+- `replace`: the user is correcting or changing an existing durable preference
+- `append`: the user is adding another durable trait without revoking the old one
+- `remove`: the user explicitly wants one old preference or trait removed
+
+This is especially important for `preferences`, `personality`, and `notes`, where the correct action is often incremental.
+
+## Channel-scoped identities and provisional merge
+
+The runtime now keeps user boundaries channel-scoped so profile ownership stays explicit across supported connectors such as Feishu, Telegram, WhatsApp, Discord, Google Chat, Slack, Mattermost, Signal, iMessage, and Microsoft Teams.
+
+When a stable binding is temporarily unavailable, the runtime can still:
+
+- persist a provisional profile first
+- keep trying to repair the binding in the background
+- merge that provisional profile into the stable user profile once the binding is recovered
+
+This avoids dropping durable user preferences just because identity repair lagged behind the first message.
 
 ## What it unlocks with the rest of the suite
 

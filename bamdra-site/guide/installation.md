@@ -15,7 +15,7 @@ This is the recommended path.
 
 ## What happens automatically
 
-When you install `@bamdra/bamdra-openclaw-memory`, the bootstrap now does all of this:
+When you install `@bamdra/bamdra-openclaw-memory`, the npm `postinstall` bootstrap now does all of this:
 
 - creates the local memory directory
 - installs the main continuity runtime
@@ -25,6 +25,19 @@ When you install `@bamdra/bamdra-openclaw-memory`, the bootstrap now does all of
 - binds the memory and context-engine slots to `bamdra-openclaw-memory`
 
 In practice, it feels like a one-command install for the complete suite.
+
+Note:
+
+- use `openclaw plugins install @bamdra/bamdra-openclaw-memory` for the plugin itself
+- `openclaw update` is for updating OpenClaw, not as a plugin migration hook
+
+If you already installed an older suite version and the local state is no longer clean, do not manually delete plugin folders first. Install the standalone repair skill instead:
+
+```bash
+clawdhub --workdir ~/.openclaw --dir skills install bamdra-memory-upgrade-operator --force
+```
+
+Then let an agent use that skill to uninstall, reinstall, or upgrade the suite safely. See [Upgrade Skill](/guide/upgrade-operator).
 
 After install, keep the prompt split clean:
 
@@ -105,4 +118,5 @@ After installation:
 
 - [Architecture](/guide/architecture)
 - [Best Practices](/guide/best-practices)
+- [Upgrade Skill](/guide/upgrade-operator)
 - [Downloads](/guide/downloads)
