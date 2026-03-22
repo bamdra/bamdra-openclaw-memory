@@ -31,6 +31,7 @@ That is the gap this plugin closes.
 - semantic recall for fuzzy questions
 - local-first retrieval before web search
 - automatic indexing of `knowledge/`, `docs/`, `notes/`, and `ideas/`
+- support for alternative idea buckets such as `06_Interest/` in numbered Obsidian vault layouts
 
 ## Best-practice knowledge layout
 
@@ -56,6 +57,7 @@ Suggested interpretation:
 - `docs/` for formal documentation, references, and changelogs
 - `notes/` for meeting notes and process-heavy records
 - `ideas/` for unfinished but worth-searching thinking
+- if your vault uses numbered folders, `06_Interest/` can serve the same role as `ideas/`
 - `_runtime/` for system-managed generated files
 
 ## Best-practice storage setup

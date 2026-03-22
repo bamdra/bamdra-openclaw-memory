@@ -25,6 +25,11 @@ Automatic bootstrap behavior:
 - bamdra-user-bind can also run independently
 - bamdra-memory-vector remains an independent optional plugin
 
+Prompt split after install:
+- let bamdra-user-bind own preferred address, nickname, timezone, and other stable per-user profile fields
+- keep workspace USER.md files thin and focused on environment facts instead of identity
+- if your knowledge vault uses numbered folders, 06_Interest/ can serve the same role as ideas/
+
 Repository:
 https://github.com/bamdra
 

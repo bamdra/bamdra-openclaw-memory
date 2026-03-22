@@ -26,6 +26,11 @@ When you install `@bamdra/bamdra-openclaw-memory`, the bootstrap now does all of
 
 In practice, it feels like a one-command install for the complete suite.
 
+After install, keep the prompt split clean:
+
+- let `bamdra-user-bind` own preferred address, nickname, timezone, and other stable per-user profile fields
+- keep workspace `USER.md` files thin and focused on environment facts instead of identity
+
 ## Why this matters
 
 Users should not need to:

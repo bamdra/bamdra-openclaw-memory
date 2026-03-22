@@ -26,6 +26,11 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 
 对用户来说，它应该就是“一条命令安装整套能力”。
 
+安装完成后，建议把 prompt 分工也一起收口：
+
+- 默认称呼、昵称、时区、长期语气偏好等稳定画像字段交给 `bamdra-user-bind`
+- workspace 里的 `USER.md` 尽量保持很薄，只写环境事实，不再重复身份层信息
+
 ## 为什么这样很重要
 
 用户不应该还需要：
