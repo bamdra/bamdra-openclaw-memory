@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.20 - 2026-03-27
+
+### Fixed
+
+- 修复会话失忆问题：恢复 getSessionIdFromHookContext 函数的正确优先级顺序（sessionKey 在第一位）
+- 修复 sessionId 获取错误，导致内存上下文无法正确关联同一个会话的问题
+
 ## v0.3.19 - 2026-03-23
 
 ### Changed

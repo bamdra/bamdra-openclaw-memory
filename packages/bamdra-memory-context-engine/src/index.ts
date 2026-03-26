@@ -169,7 +169,9 @@ export function createContextEngineMemoryV2Plugin(
             const text = getTextFromHookContext(event);
             logMemoryEvent("hook-ingest-received", {
               hasSessionId: Boolean(sessionId),
+              sessionId,
               textPreview: typeof text === "string" ? text.slice(0, 80) : null,
+              eventKeys: event && typeof event === "object" ? Object.keys(event) : [],
             });
             if (!sessionId || !text) {
               return;
@@ -204,7 +206,6 @@ export function createContextEngineMemoryV2Plugin(
           logMemoryEvent("hook-assemble-received", {
             hasSessionId: Boolean(sessionId),
             hasText: Boolean(text),
-            hasMultimodalPayload,
           });
           if (!sessionId) {
             return;
