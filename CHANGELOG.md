@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.3.22 - 2026-03-29
+
+### Fixed
+
+- stopped `before_prompt_build` from re-tracking the exact same most-recent user message, which could otherwise duplicate topic ingestion during some runtime flows
+- preserved runtime-supplied `messages` when the legacy `contextEngine.assemble()` compatibility path is used, so older OpenClaw integrations keep their original prompt payload intact
+- hardened local recall, summary refresh, and vector search handling against malformed or non-array data returned from mixed runtime states
+- updated the multimodal compatibility hook registration test to match the current OpenClaw hook API and added regression coverage for malformed summary/vector inputs
+
+### Notes
+
+- this release pairs with `@bamdra/bamdra-user-bind@0.1.16` and `@bamdra/bamdra-memory-vector@0.1.15`
+
 ## v0.3.21 - 2026-03-27
 
 ### Fixed

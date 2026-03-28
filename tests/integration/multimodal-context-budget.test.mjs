@@ -33,8 +33,10 @@ test("before_prompt_build keeps prependSystemContext compact for multimodal inpu
   let handler = null;
   plugin.registerHooks({
     registerContextEngine() {},
-    registerTypedHook(_name, nextHandler) {
-      handler = nextHandler;
+    on(name, nextHandler) {
+      if (name === "before_prompt_build") {
+        handler = nextHandler;
+      }
     },
   });
 

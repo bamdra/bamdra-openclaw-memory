@@ -209,6 +209,7 @@ export interface AssembledContext {
   sessionId: string;
   topicId: string | null;
   text: string;
+  messages?: unknown[];
   sections: Array<{
     kind: "topic" | "summary" | "open_loops" | "facts" | "recent_messages";
     content: string;

@@ -103,6 +103,7 @@ export class ContextAssembler {
       sessionId: input.sessionId,
       topicId: input.topic?.id ?? null,
       text,
+      messages: [],
       sections: sections.filter((section) => section.content.trim().length > 0),
     };
   }
@@ -113,7 +114,7 @@ function joinList(values: string[]): string {
 }
 
 function limitFacts<T>(values: T[], limit: number): T[] {
-  return values.slice(0, Math.max(0, limit));
+  return (Array.isArray(values) ? values : []).slice(0, Math.max(0, limit));
 }
 
 function trimToLength(value: string, maxChars: number): string {

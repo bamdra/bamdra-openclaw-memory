@@ -211,7 +211,7 @@ export function createContextEngineMemoryV2Plugin(
             return;
           }
 
-          if (text) {
+          if (text && !(await wasMostRecentUserMessage(store, cache, sessionId, text))) {
             const result = await plugin.routeAndTrack(sessionId, text);
             logMemoryEvent("hook-before-prompt-tracked", {
               sessionId,
@@ -511,7 +511,11 @@ export function createContextEngineMemoryV2Plugin(
       if (!sessionId) {
         throw new Error("context engine assemble requires a sessionId");
       }
-      return plugin.assembleContext(sessionId);
+      const assembled = await plugin.assembleContext(sessionId);
+      return {
+        ...assembled,
+        messages: Array.isArray(params?.messages) ? params.messages : assembled.messages ?? [],
+      };
     },
     async ingest(params) {
       const sessionId = typeof params?.sessionId === "string" ? params.sessionId : null;
@@ -671,6 +675,26 @@ async function resolveSessionState(
   return cachedState
     ? mapCachedStateToSessionState(sessionId, cachedState)
     : store.getSessionState(sessionId);
+}
+
+async function wasMostRecentUserMessage(
+  store: MemorySqliteStore,
+  cache: CacheStore,
+  sessionId: string,
+  text: string,
+): Promise<boolean> {
+  const sessionState = await resolveSessionState(store, cache, sessionId);
+  if (!sessionState?.activeTopicId) {
+    return false;
+  }
+
+  const recentMessages = await store.listRecentMessagesForTopic(sessionState.activeTopicId, 1);
+  const latestUserMessage = recentMessages.find((entry) => entry.message.role === "user");
+  if (!latestUserMessage?.message.text) {
+    return false;
+  }
+
+  return normalizeWhitespace(latestUserMessage.message.text) === normalizeWhitespace(text);
 }
 
 function mapCachedStateToSessionState(
@@ -840,7 +864,8 @@ function searchVectorMemory(args: {
   if (!api?.search) {
     return [];
   }
-  return api.search(args) as MemorySearchResult["vectors"];
+  const result = api.search(args);
+  return Array.isArray(result) ? result as MemorySearchResult["vectors"] : [];
 }
 
 function createSpawnedTopic(
@@ -1324,13 +1349,16 @@ function mergeLocalKnowledgeRecall(
   search: MemorySearchResult,
   maxChars: number,
 ): AssembledContext {
-  const vectorLines = search.vectors
+  const vectors = Array.isArray(search.vectors) ? search.vectors : [];
+  const facts = Array.isArray(search.facts) ? search.facts : [];
+  const topics = Array.isArray(search.topics) ? search.topics : [];
+  const vectorLines = vectors
     .slice(0, 3)
     .map((item) => `- [vector] ${trimToLength(item.title, 80)} (${trimToLength(item.sourcePath, 120)}): ${trimToLength(item.text, 180)}`);
-  const factLines = search.facts
+  const factLines = facts
     .slice(0, 2)
     .map((item) => `- [fact] ${trimToLength(item.fact.key, 80)}: ${trimToLength(item.fact.value, 140)}`);
-  const topicLines = search.topics
+  const topicLines = topics
     .slice(0, 2)
     .map((item) => `- [topic] ${trimToLength(item.topic.title, 80)}: ${trimToLength(item.topic.summaryShort, 140)}`);
   const lines = [...vectorLines, ...factLines, ...topicLines];
@@ -1432,7 +1460,7 @@ function trimToLength(value: string, maxChars: number): string {
     return "";
   }
 
-  const normalized = value.replace(/\s+/g, " ").trim();
+  const normalized = normalizeWhitespace(value);
   if (normalized.length <= maxChars) {
     return normalized;
   }
@@ -1442,4 +1470,8 @@ function trimToLength(value: string, maxChars: number): string {
   }
 
   return `${normalized.slice(0, maxChars - 3).trimEnd()}...`;
+}
+
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
 }
