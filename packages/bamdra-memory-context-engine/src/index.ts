@@ -27,6 +27,9 @@ import { join } from "node:path";
 const ENGINE_GLOBAL_KEY = "__OPENCLAW_BAMDRA_MEMORY_CONTEXT_ENGINE__";
 const USER_BIND_GLOBAL_KEY = "__OPENCLAW_BAMDRA_USER_BIND__";
 const VECTOR_GLOBAL_KEY = "__OPENCLAW_BAMDRA_MEMORY_VECTOR__";
+const HOOKS_REGISTERED_KEY = "__OPENCLAW_BAMDRA_MEMORY_HOOKS_REGISTERED__";
+const RECENT_INGEST_DEDUPE_KEY = "__OPENCLAW_BAMDRA_MEMORY_RECENT_INGEST__";
+const RECENT_INGEST_DEDUPE_WINDOW_MS = 15_000;
 const DEFAULT_DB_PATH = join(
   homedir(),
   ".openclaw",
@@ -152,7 +155,10 @@ export function createContextEngineMemoryV2Plugin(
     capabilities: ["memory"],
     config,
     registerHooks(hostApi: unknown): void {
-      if (hooksRegistered) {
+      const hostRecord = hostApi && typeof hostApi === "object"
+        ? hostApi as Record<string, unknown>
+        : null;
+      if (hooksRegistered || hostRecord?.[HOOKS_REGISTERED_KEY]) {
         return;
       }
 
@@ -174,6 +180,13 @@ export function createContextEngineMemoryV2Plugin(
               eventKeys: event && typeof event === "object" ? Object.keys(event) : [],
             });
             if (!sessionId || !text) {
+              return;
+            }
+            if (shouldSkipRecentInboundDuplicate(sessionId, text)) {
+              logMemoryEvent("hook-ingest-skipped-duplicate", {
+                sessionId,
+                textPreview: text.slice(0, 80),
+              });
               return;
             }
 
@@ -265,6 +278,9 @@ export function createContextEngineMemoryV2Plugin(
         internalHooks: registerHook ? ["message:received", "message:preprocessed"] : [],
         typedHooks: registerTypedHook ? ["before_prompt_build"] : [],
       });
+      if (hostRecord) {
+        hostRecord[HOOKS_REGISTERED_KEY] = true;
+      }
       hooksRegistered = true;
     },
     async setup(): Promise<void> {
@@ -1298,8 +1314,62 @@ function extractTextFromInput(input: unknown): string | null {
 }
 
 function normalizeHookText(value: unknown): string | null {
-  const normalized = extractTextFromStructuredValue(value).trim();
+  const normalized = stripInboundMessageMetadata(extractTextFromStructuredValue(value)).trim();
   return normalized ? normalized : null;
+}
+
+function stripInboundMessageMetadata(text: string): string {
+  const hadMetadata = looksLikeInboundMessageMetadata(text);
+  let cleaned = text
+    .replace(/Conversation info \(untrusted metadata\):\s*```json[\s\S]*?```/gi, "")
+    .replace(/Sender \(untrusted metadata\):\s*```json[\s\S]*?```/gi, "")
+    .replace(/^\s*\[[^\n]*message_id[^\n]*\]\s*$/gim, "")
+    .replace(/^\s*\[[^\n]*sender_id[^\n]*\]\s*$/gim, "");
+  if (hadMetadata) {
+    cleaned = cleaned.replace(/^\s*[^\n:：]{1,40}[:：]\s*/m, "");
+  }
+  return cleaned.trim();
+}
+
+function looksLikeInboundMessageMetadata(text: string): boolean {
+  return text.includes("Conversation info (untrusted metadata)")
+    || text.includes("Sender (untrusted metadata)")
+    || /^\s*\[[^\n]*message_id[^\n]*\]\s*$/im.test(text)
+    || /^\s*\[[^\n]*sender_id[^\n]*\]\s*$/im.test(text)
+    || /"sender_id"\s*:\s*"/.test(text);
+}
+
+function shouldSkipRecentInboundDuplicate(sessionId: string, text: string): boolean {
+  const normalized = normalizeWhitespace(text);
+  if (!normalized) {
+    return false;
+  }
+  const registry = getRecentInboundDedupeRegistry();
+  const key = `${sessionId}:${normalized}`;
+  const now = Date.now();
+  const previous = registry.get(key) ?? 0;
+  registry.set(key, now);
+  pruneRecentInboundDedupeRegistry(registry, now);
+  return previous > 0 && now - previous <= RECENT_INGEST_DEDUPE_WINDOW_MS;
+}
+
+function getRecentInboundDedupeRegistry(): Map<string, number> {
+  const globalRecord = globalThis as Record<string, unknown>;
+  const existing = globalRecord[RECENT_INGEST_DEDUPE_KEY];
+  if (existing instanceof Map) {
+    return existing as Map<string, number>;
+  }
+  const next = new Map<string, number>();
+  globalRecord[RECENT_INGEST_DEDUPE_KEY] = next;
+  return next;
+}
+
+function pruneRecentInboundDedupeRegistry(registry: Map<string, number>, now: number): void {
+  for (const [key, ts] of registry.entries()) {
+    if (now - ts > RECENT_INGEST_DEDUPE_WINDOW_MS) {
+      registry.delete(key);
+    }
+  }
 }
 
 function buildBeforePromptBuildResult(

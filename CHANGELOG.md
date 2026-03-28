@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.23 - 2026-03-29
+
+### Fixed
+
+- deduped hook registration across repeated runtime setup paths so the same host API no longer gets duplicate inbound hooks attached
+- stripped common inbound channel metadata wrappers before ingest dedupe checks so the same user message is not stored twice when raw text and metadata-wrapped text both arrive
+- added regression coverage for duplicate hook registration and metadata-wrapped inbound dedupe
+
+### Notes
+
+- this release keeps the companion versions at `@bamdra/bamdra-user-bind@0.1.16` and `@bamdra/bamdra-memory-vector@0.1.15`
+
 ## v0.3.22 - 2026-03-29
 
 ### Fixed
