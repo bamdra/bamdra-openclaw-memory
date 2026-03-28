@@ -141,5 +141,5 @@ The Markdown mirror is also clearer now:
 - [Installation guide](./docs/en/installation.md)
 - [Prompting guide](./docs/en/prompting.md)
 - [Example config](./examples/configs/openclaw.plugins.bamdra-memory.suite.merge.json)
-- [Standalone upgrade skill](../clawhub-skills/bamdra-memory-upgrade-operator/SKILL.md)
+- [Standalone upgrade skill](./plugins/bamdra-memory/skills/bamdra-memory-upgrade-operator/SKILL.md)
 - [GitHub organization](https://github.com/bamdra)
