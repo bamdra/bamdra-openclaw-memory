@@ -1,6 +1,6 @@
 {
   "name": "@bamdra/bamdra-openclaw-memory",
-  "version": "0.3.24",
+  "version": "0.3.25",
   "description": "Unified topic-aware memory plugin for OpenClaw with durable SQLite recall and bounded context growth.",
   "license": "MIT",
   "homepage": "https://www.bamdra.com",
@@ -61,7 +61,7 @@
     }
   },
   "dependencies": {
-    "@bamdra/bamdra-user-bind": "^0.1.16",
+    "@bamdra/bamdra-user-bind": "^0.1.17",
     "@bamdra/bamdra-memory-vector": "^0.1.15"
   },
   "devDependencies": {

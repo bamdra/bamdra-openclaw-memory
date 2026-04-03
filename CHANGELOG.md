@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.25 - 2026-04-03
+
+### Fixed
+
+- made the workspace TypeScript baseline self-contained again so local `tsc -b` no longer depends on a missing parent `tsconfig.base.json`
+- restored compatibility in the legacy `contextEngine.assemble()` path when runtimes pass a `messages` array alongside `sessionId`
+- pulled in `@bamdra/bamdra-user-bind@0.1.17`, which resets stale singleton runtimes across host instances and applies semantic profile updates during `before_prompt_build` immediately
+
+### Notes
+
+- this release pairs with `@bamdra/bamdra-user-bind@0.1.17` and `@bamdra/bamdra-memory-vector@0.1.15`
+
 ## v0.3.24 - 2026-04-03
 
 ### Fixed

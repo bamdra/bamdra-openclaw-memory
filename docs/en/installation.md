@@ -63,7 +63,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 If you want to pin a specific release, install that explicit version instead:
 
 ```bash
-openclaw plugins install @bamdra/bamdra-openclaw-memory@0.3.24
+openclaw plugins install @bamdra/bamdra-openclaw-memory@0.3.25
 ```
 
 Use `openclaw update` only when you intend to upgrade OpenClaw itself.

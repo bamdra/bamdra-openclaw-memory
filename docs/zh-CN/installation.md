@@ -65,7 +65,7 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 如果你想固定到某个指定版本，就把版本号写清楚：
 
 ```bash
-openclaw plugins install @bamdra/bamdra-openclaw-memory@0.3.24
+openclaw plugins install @bamdra/bamdra-openclaw-memory@0.3.25
 ```
 
 `openclaw update` 只在你要升级 OpenClaw 本体时使用。
