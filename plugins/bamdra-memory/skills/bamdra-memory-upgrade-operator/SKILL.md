@@ -16,36 +16,64 @@ Use this skill when the user wants to upgrade, reinstall, or repair the Bamdra m
 
 Perform a safe in-place suite upgrade without leaving `~/.openclaw/openclaw.json` broken.
 
-The bundled script does four things in one flow:
+Follow this manual flow:
 
-1. backs up the current config and plugin/skill directories
-2. removes stale Bamdra plugin references from `openclaw.json`
-3. moves old plugin and bundled skill directories out of the way
-4. runs `openclaw plugins install @bamdra/bamdra-openclaw-memory`
+1. create a backup directory under `~/.openclaw/backups/` with a timestamped name
+2. copy `~/.openclaw/openclaw.json` into that backup directory before changing anything
+3. move any existing Bamdra plugin directories out of `~/.openclaw/extensions/`
+4. move any existing Bamdra bundled skill directories out of `~/.openclaw/skills/`
+5. remove stale Bamdra plugin references from `openclaw.json`
+6. run `openclaw plugins install @bamdra/bamdra-openclaw-memory`
+7. restart the OpenClaw gateway after a successful install
 
-If install fails, the script restores the old config and moved directories.
+If install fails, restore the saved `openclaw.json` and move the backed-up plugin and skill directories back into place.
 
-## Default Command
+## Manual Repair Checklist
 
-Run:
+Use these IDs when cleaning up stale state:
 
-```bash
-node ./scripts/upgrade-bamdra-memory.cjs
-```
+- plugin directories: `bamdra-openclaw-memory`, `bamdra-user-bind`, `bamdra-memory-vector`
+- skill directories: `bamdra-memory-operator`, `bamdra-memory-upgrade-operator`, `bamdra-user-bind-profile`, `bamdra-user-bind-admin`, `bamdra-memory-vector-operator`
+- plugin slots to clear if they still point at old Bamdra entries: `memory`, `contextEngine`
 
-From this skill directory, that upgrades to the latest published `@bamdra/bamdra-openclaw-memory`.
+Remove these tool names from `tools.allow` if they are present before reinstall:
 
-## Optional Flags
+- `bamdra_memory_list_topics`
+- `bamdra_memory_switch_topic`
+- `bamdra_memory_save_fact`
+- `bamdra_memory_compact_topic`
+- `bamdra_memory_search`
+- `bamdra_user_bind_get_my_profile`
+- `bamdra_user_bind_update_my_profile`
+- `bamdra_user_bind_refresh_my_binding`
+- `bamdra_user_bind_admin_query`
+- `bamdra_user_bind_admin_edit`
+- `bamdra_user_bind_admin_merge`
+- `bamdra_user_bind_admin_list_issues`
+- `bamdra_user_bind_admin_sync`
+- `bamdra_memory_vector_search`
+- `memory_list_topics`
+- `memory_switch_topic`
+- `memory_save_fact`
+- `memory_compact_topic`
+- `memory_search`
+- `user_bind_get_my_profile`
+- `user_bind_update_my_profile`
+- `user_bind_refresh_my_binding`
+- `user_bind_admin_query`
+- `user_bind_admin_edit`
+- `user_bind_admin_merge`
+- `user_bind_admin_list_issues`
+- `user_bind_admin_sync`
+- `memory_vector_search`
 
-- `--package <npm-spec>` to install a specific version such as `@bamdra/bamdra-openclaw-memory@0.3.17`
-- `--openclaw-home <path>` to target a non-default OpenClaw home
-- `--restart-gateway` to restart the gateway after a successful install
+When the user wants a specific version, install that explicit npm spec instead of `@bamdra/bamdra-openclaw-memory`.
 
 ## Behavior Rules
 
-- prefer the script over ad-hoc manual deletion
+- prefer this backup-first checklist over ad-hoc manual deletion
 - mention the backup directory after success
-- after success, remind the user to restart OpenClaw if `--restart-gateway` was not used
+- after success, remind the user to restart OpenClaw if the gateway was not restarted during the repair
 - do not manually edit unrelated plugin config while doing this upgrade
 - do not delete backup directories unless the user explicitly asks
 

@@ -10,6 +10,8 @@
 openclaw plugins install @bamdra/bamdra-openclaw-memory
 ```
 
+以后升级时，重复执行同一条命令即可。如果你要固定某个版本，就在包名后面追加版本号，例如 `@bamdra/bamdra-openclaw-memory@0.3.24`。
+
 这一条命令现在会把整套 Bamdra 记忆栈一起准备好：
 
 - `bamdra-openclaw-memory`

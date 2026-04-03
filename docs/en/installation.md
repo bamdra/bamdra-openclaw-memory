@@ -52,6 +52,23 @@ Important OpenClaw CLI note:
 - `openclaw update` updates OpenClaw itself for source installs; it should not be treated as a plugin migration hook
 - the runtime still keeps an idempotent bootstrap fallback, but npm install no longer depends on first plugin activation to finish the setup
 
+## Upgrade An Existing Install
+
+For routine plugin upgrades, rerun the same install command:
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+```
+
+If you want to pin a specific release, install that explicit version instead:
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory@0.3.24
+```
+
+Use `openclaw update` only when you intend to upgrade OpenClaw itself.
+If a local install is stale or partially broken, open the bundled `bamdra-memory-upgrade-operator` skill in `~/.openclaw/skills/` and follow its backup-first recovery checklist before retrying the install.
+
 After install, the recommended prompt split is:
 
 - let `bamdra-user-bind` own per-user profile data such as preferred address, nickname, timezone, and stable tone defaults

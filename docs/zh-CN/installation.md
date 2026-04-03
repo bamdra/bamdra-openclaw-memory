@@ -54,6 +54,23 @@ openclaw plugins install @bamdra/bamdra-openclaw-memory
 - `openclaw update` 主要更新的是 OpenClaw 本体，尤其是源码安装场景，不应把它当成插件迁移钩子
 - runtime 里仍然保留幂等 bootstrap 兜底，但 npm 安装流程现在不再依赖首次激活插件才能完成补齐
 
+## 已有安装如何升级
+
+日常升级插件时，直接重复执行同一条安装命令：
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory
+```
+
+如果你想固定到某个指定版本，就把版本号写清楚：
+
+```bash
+openclaw plugins install @bamdra/bamdra-openclaw-memory@0.3.24
+```
+
+`openclaw update` 只在你要升级 OpenClaw 本体时使用。
+如果本地安装已经出现残留目录、半安装状态或配置污染，先打开 `~/.openclaw/skills/` 里的 `bamdra-memory-upgrade-operator`，按里面的备份优先修复清单处理，再重新执行安装命令。
+
 安装完成后，推荐的 prompt 分工是：
 
 - 让 `bamdra-user-bind` 负责默认称呼、昵称、时区、长期语气偏好等 per-user 画像信息

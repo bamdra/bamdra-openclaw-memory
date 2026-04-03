@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.3.24 - 2026-04-03
+
+### Fixed
+
+- stopped shipping the bundled `bamdra-memory-upgrade-operator` helper script that imported `node:child_process`, so `openclaw plugins install @bamdra/bamdra-openclaw-memory` is no longer blocked by the OpenClaw `2026.4.2` dangerous-code scan
+- kept the upgrade operator available as a documentation-only recovery skill so broken local installs can still be repaired with a backup-first manual checklist
+- added regression coverage to keep executable helper code out of the published upgrade skill payload
+
+### Upgrade
+
+- for normal upgrades, rerun `openclaw plugins install @bamdra/bamdra-openclaw-memory`
+- `openclaw update` updates OpenClaw itself; it does not replace the plugin install step for this suite
+
+### Notes
+
+- this release keeps the companion versions at `@bamdra/bamdra-user-bind@0.1.16` and `@bamdra/bamdra-memory-vector@0.1.15`
+
 ## v0.3.23 - 2026-03-29
 
 ### Fixed

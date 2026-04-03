@@ -10,6 +10,8 @@ Install once:
 openclaw plugins install @bamdra/bamdra-openclaw-memory
 ```
 
+Upgrade later with the same command. If you need to pin a release, add the version suffix, for example `@bamdra/bamdra-openclaw-memory@0.3.24`.
+
 That single install now prepares the full Bamdra memory stack:
 
 - `bamdra-openclaw-memory`
