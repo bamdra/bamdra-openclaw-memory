@@ -84,7 +84,13 @@ export interface ContextEngineMemoryV2Plugin {
     limit?: number;
   }): Promise<MemorySearchResult>;
   routeTopic(sessionId: string, text: string): Promise<TopicRoutingDecision>;
-  assemble(params: string | { sessionId?: string | null } | null | undefined): Promise<AssembledContext>;
+  assemble(
+    params:
+      | string
+      | { sessionId?: string | null; messages?: unknown[] }
+      | null
+      | undefined,
+  ): Promise<AssembledContext>;
   assembleContext(sessionId: string): Promise<AssembledContext>;
   ingest(
     params:
@@ -528,9 +534,13 @@ export function createContextEngineMemoryV2Plugin(
         throw new Error("context engine assemble requires a sessionId");
       }
       const assembled = await plugin.assembleContext(sessionId);
+      const inputMessages =
+        typeof params === "object" && params != null && Array.isArray(params.messages)
+          ? params.messages
+          : assembled.messages ?? [];
       return {
         ...assembled,
-        messages: Array.isArray(params?.messages) ? params.messages : assembled.messages ?? [],
+        messages: inputMessages,
       };
     },
     async ingest(params) {
